@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create release zip
+        run: |
+          mkdir -p release/GuildHistorian
+          rsync -a --exclude='.git' --exclude='.github' --exclude='.gitignore' \
+            --exclude='.editorconfig' --exclude='.luacheckrc' \
+            --exclude='CONTRIBUTING.md' --exclude='*.zip' \
+            ./ release/GuildHistorian/
+          cd release
+          zip -r "../GuildHistorian-${{ steps.version.outputs.version }}.zip" GuildHistorian/
+
+      - name: Create GitHub Release
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            "GuildHistorian-${{ steps.version.outputs.version }}.zip" \
+            --title "GuildHistorian ${{ steps.version.outputs.version }}" \
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Uncomment to upload to CurseForge:
+      # - name: Upload to CurseForge
+      #   uses: itsmeow/curseforge-upload@v3
+      #   with:
+      #     token: ${{ secrets.CURSEFORGE_TOKEN }}
+      #     project_id: "YOUR_PROJECT_ID"
+      #     game_endpoint: "wow"
+      #     file_path: "GuildHistorian-${{ steps.version.outputs.version }}.zip"
+      #     changelog: "See GitHub release notes"
+      #     changelog_type: "text"
+      #     game_versions: "10.2.0"
+      #     release_type: "release"

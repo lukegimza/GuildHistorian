@@ -1,0 +1,48 @@
+## Interface: 110100
+## Title: Guild Historian
+## Notes: Passively records guild milestones and presents them in a browsable in-game timeline.
+## Author: GIMZWARE
+## Version: 1.0.0
+## SavedVariables: GuildHistorianDB
+## SavedVariablesPerCharacter: GuildHistorianCharDB
+## IconTexture: Interface\Icons\INV_Misc_Book_09
+
+# Libraries
+Libs\libs.xml
+
+# Localization
+Locales\enUS.lua
+Locales\deDE.lua
+Locales\frFR.lua
+Locales\esES.lua
+Locales\ptBR.lua
+
+# Core
+Core\Constants.lua
+Core\Utils.lua
+Core\Database.lua
+Core\Init.lua
+
+# Modules
+Modules\GuildRoster.lua
+Modules\BossKills.lua
+Modules\Achievements.lua
+Modules\LootTracker.lua
+Modules\MilestoneDetector.lua
+Modules\OnThisDay.lua
+Modules\Notes.lua
+
+# UI (XML templates first, then Lua)
+UI\MainFrame.xml
+UI\TimelineEntry.xml
+UI\OnThisDayPopup.xml
+UI\MainFrame.lua
+UI\TimelineEntry.lua
+UI\Timeline.lua
+UI\FilterBar.lua
+UI\DetailPanel.lua
+UI\StatsPanel.lua
+UI\ExportFrame.lua
+UI\OnThisDayPopup.lua
+UI\SettingsPanel.lua
+UI\MinimapButton.lua

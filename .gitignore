@@ -1,0 +1,6 @@
+.DS_Store
+*.bak
+.luacheckrc_cache
+.vscode/
+.idea/
+*.zip
