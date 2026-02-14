@@ -21,9 +21,12 @@ local currentFilters = {
     search = nil,
     startDate = nil,
     endDate = nil,
-    difficultyID = nil,
-    filterMonth = nil,
-    filterDay = nil,
+}
+
+local filterTypes = {
+    { type = "achievement", label = L["FILTER_ACHIEVEMENTS"], color = {0.78, 0.61, 1.0} },
+    { type = "news",        label = L["FILTER_NEWS"],         color = {1.0, 0.41, 0.41} },
+    { type = "event_log",   label = L["FILTER_ROSTER"],       color = {0.33, 1.0, 0.33} },
 }
 
 function FilterBar:Init(parent)
@@ -48,29 +51,17 @@ function FilterBar:Init(parent)
     end)
 
     local xOffset = 180
-    local importantTypes = {
-        { type = "BOSS_KILL",    label = L["BOSS_KILL"] },
-        { type = "MEMBER_JOIN",  label = L["MEMBER_JOIN"] },
-        { type = "ACHIEVEMENT",  label = L["ACHIEVEMENT"] },
-        { type = "LOOT",         label = L["LOOT"] },
-        { type = "MILESTONE",    label = L["MILESTONE"] },
-    }
-
-    for _, info in ipairs(importantTypes) do
+    for _, info in ipairs(filterTypes) do
         local check = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate")
         check:SetSize(22, 22)
         check:SetPoint("LEFT", xOffset, 0)
         check:SetChecked(true)
-        check.eventType = info.type
+        check.filterType = info.type
 
         local label = check:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         label:SetPoint("LEFT", check, "RIGHT", 2, 0)
         label:SetText(info.label)
-
-        local typeInfo = ns.EVENT_TYPE_INFO[info.type]
-        if typeInfo then
-            label:SetTextColor(typeInfo.color[1], typeInfo.color[2], typeInfo.color[3])
-        end
+        label:SetTextColor(info.color[1], info.color[2], info.color[3])
 
         check:SetScript("OnClick", function()
             FilterBar:UpdateTypeFilters()
@@ -78,7 +69,7 @@ function FilterBar:Init(parent)
         end)
 
         categoryChecks[info.type] = check
-        xOffset = xOffset + label:GetStringWidth() + 36
+        xOffset = xOffset + 90
     end
 
     clearButton = CreateFrame("Button", nil, container, "UIPanelButtonTemplate")
@@ -122,24 +113,13 @@ function FilterBar:UpdateTypeFilters()
     local anyUnchecked = false
     local types = {}
 
-    for eventType, check in pairs(categoryChecks) do
+    for filterType, check in pairs(categoryChecks) do
         if check:GetChecked() then
-            types[eventType] = true
-            if eventType == "BOSS_KILL" then
-                types["FIRST_KILL"] = true
-            elseif eventType == "MEMBER_JOIN" then
-                types["MEMBER_LEAVE"] = true
-                types["MEMBER_RANK_CHANGE"] = true
-                types["MEMBER_MAX_LEVEL"] = true
-            elseif eventType == "ACHIEVEMENT" then
-                types["GUILD_ACHIEVEMENT"] = true
-            end
+            types[filterType] = true
         else
             anyUnchecked = true
         end
     end
-
-    types["PLAYER_NOTE"] = true
 
     if anyUnchecked then
         currentFilters.types = types
@@ -157,15 +137,11 @@ function FilterBar:SetDatePreset(days)
         currentFilters.endDate = GetServerTime()
         currentFilters.startDate = currentFilters.endDate - (days * 86400)
     end
-    currentFilters.filterMonth = nil
-    currentFilters.filterDay = nil
     self:UpdateDateButtonHighlights()
     self:ApplyFilters()
 end
 
 function FilterBar:SetMonthDayFilter(month, day)
-    currentFilters.filterMonth = month
-    currentFilters.filterDay = day
     if month then
         activeDatePreset = nil
         currentFilters.startDate = nil
@@ -176,31 +152,21 @@ function FilterBar:SetMonthDayFilter(month, day)
 end
 
 function FilterBar:ClearFilters()
-    if searchBox then
-        searchBox:SetText("")
-    end
+    if searchBox then searchBox:SetText("") end
     currentFilters.search = nil
-
     for _, check in pairs(categoryChecks) do
         check:SetChecked(true)
     end
     currentFilters.types = nil
-
     currentFilters.startDate = nil
     currentFilters.endDate = nil
-    currentFilters.difficultyID = nil
-    currentFilters.filterMonth = nil
-    currentFilters.filterDay = nil
     activeDatePreset = nil
     self:UpdateDateButtonHighlights()
-
     self:ApplyFilters()
 end
 
 function FilterBar:GetFilters()
-    if not currentFilters.types and not currentFilters.search
-       and not currentFilters.startDate and not currentFilters.difficultyID
-       and not currentFilters.filterMonth then
+    if not currentFilters.types and not currentFilters.search and not currentFilters.startDate then
         return nil
     end
     return currentFilters

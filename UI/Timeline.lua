@@ -2,9 +2,9 @@ local GH, ns = ...
 
 local L = ns.L
 local Utils = ns.Utils
-local Database = ns.Database
 
 local ipairs = ipairs
+local format = format
 
 local Timeline = {}
 ns.Timeline = Timeline
@@ -72,6 +72,54 @@ local function ReleaseAll()
     end
 end
 
+function Timeline:GetMergedEvents()
+    local events = {}
+
+    -- Guild achievements (historical)
+    local achievements = ns.AchievementScanner and ns.AchievementScanner:Scan() or {}
+    for _, ach in ipairs(achievements) do
+        events[#events + 1] = {
+            type = "achievement",
+            title = ach.name,
+            description = ach.description,
+            timestamp = ach.timestamp,
+            icon = (ns.NEWS_TYPE_INFO[0] or {}).icon,
+            color = (ns.NEWS_TYPE_INFO[0] or {}).color or {0.78, 0.61, 1.0},
+        }
+    end
+
+    -- Guild news (recent)
+    local news = ns.NewsReader and ns.NewsReader:Read() or {}
+    for _, entry in ipairs(news) do
+        local info = entry.typeInfo or {}
+        events[#events + 1] = {
+            type = "news",
+            title = (info.label or "Event") .. ": " .. entry.what,
+            description = entry.who,
+            timestamp = entry.timestamp,
+            icon = info.icon,
+            color = info.color,
+            newsType = entry.newsType,
+        }
+    end
+
+    -- Event log (recent roster changes)
+    local eventLog = ns.EventLogReader and ns.EventLogReader:Read() or {}
+    for _, evt in ipairs(eventLog) do
+        events[#events + 1] = {
+            type = "event_log",
+            title = evt.formattedText,
+            description = "",
+            timestamp = evt.timestamp,
+            icon = "Interface\\Icons\\Ability_Warrior_RallyingCry",
+            color = {0.33, 1.0, 0.33},
+        }
+    end
+
+    table.sort(events, function(a, b) return a.timestamp > b.timestamp end)
+    return events
+end
+
 function Timeline:Init()
     if container then return end
 
@@ -111,12 +159,44 @@ function Timeline:Refresh()
 
     ReleaseAll()
 
+    local allEvents = self:GetMergedEvents()
+
+    -- Apply filters
     local filters = nil
     if ns.FilterBar then
         filters = ns.FilterBar:GetFilters()
     end
 
-    local events = Database:GetEvents(filters)
+    local events = allEvents
+    if filters then
+        events = {}
+        for _, event in ipairs(allEvents) do
+            local pass = true
+            -- Type filter
+            if filters.types and not filters.types[event.type] then
+                pass = false
+            end
+            -- Search filter
+            if pass and filters.search then
+                local search = strlower(filters.search)
+                local title = strlower(event.title or "")
+                local desc = strlower(event.description or "")
+                if not strfind(title, search, 1, true) and not strfind(desc, search, 1, true) then
+                    pass = false
+                end
+            end
+            -- Date range filter
+            if pass and filters.startDate and event.timestamp < filters.startDate then
+                pass = false
+            end
+            if pass and filters.endDate and event.timestamp > filters.endDate then
+                pass = false
+            end
+            if pass then
+                events[#events + 1] = event
+            end
+        end
+    end
 
     if #events == 0 then
         noEventsText:SetText(filters and next(filters) and L["UI_NO_FILTERED_EVENTS"] or L["UI_NO_EVENTS"])
@@ -166,7 +246,6 @@ function Timeline:FilterByDate(month, day)
     if not ns.MainFrame:IsShown() then
         ns.MainFrame:Show()
     end
-
     if ns.FilterBar and month and day then
         ns.FilterBar:SetMonthDayFilter(month, day)
     else

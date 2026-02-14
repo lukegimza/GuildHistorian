@@ -37,15 +37,17 @@ function OnThisDayPopup:Init()
     end)
 end
 
-function OnThisDayPopup:ShowEvents(events)
+function OnThisDayPopup:Show()
     if not popup then self:Init() end
     if not popup then return end
-    if not events or #events == 0 then return end
+
+    local matches = ns.AchievementScanner and ns.AchievementScanner:GetOnThisDay() or {}
+    if #matches == 0 then return end
 
     local lines = {}
-    for _, entry in ipairs(events) do
-        lines[#lines + 1] = format("|cffffd700%s|r", format(L["ON_THIS_DAY_YEARS_AGO"], entry.yearsAgo))
-        lines[#lines + 1] = entry.event.title or entry.event.description or "Unknown event"
+    for _, match in ipairs(matches) do
+        lines[#lines + 1] = format("|cffffd700%s|r", format(L["CARD_YEARS_AGO"], match.yearsAgo))
+        lines[#lines + 1] = "Guild earned \"" .. (match.name or "Unknown") .. "\""
         lines[#lines + 1] = ""
     end
 
@@ -67,20 +69,15 @@ end
 
 function OnThisDayPopup:OnClick()
     self:Dismiss()
-
     local now = GetServerTime()
     local month, day = Utils.TimestampToMonthDay(now)
-    if ns.Timeline then
-        ns.Timeline:FilterByDate(month, day)
-    elseif ns.MainFrame then
-        ns.MainFrame:Show()
+    if ns.MainFrame then
+        ns.MainFrame:SelectTab(2)  -- Timeline tab
     end
 end
 
 function OnThisDayPopup:Dismiss()
-    if popup then
-        popup:Hide()
-    end
+    if popup then popup:Hide() end
     if dismissTimer then
         dismissTimer:Cancel()
         dismissTimer = nil

@@ -13,17 +13,15 @@ ns.MainFrame = MainFrame
 local frame = nil
 local tabs = {}
 local activeTab = nil
-local exportButton = nil
-local addNoteButton = nil
 
-local TAB_TIMELINE = 1
-local TAB_STATISTICS = 2
+local TAB_DASHBOARD = 1
+local TAB_TIMELINE = 2
 local TAB_SETTINGS = 3
 
 local TAB_INFO = {
-    { id = TAB_TIMELINE,   label = L["UI_TIMELINE"] },
-    { id = TAB_STATISTICS, label = L["UI_STATISTICS"] },
-    { id = TAB_SETTINGS,   label = L["UI_SETTINGS"] },
+    { id = TAB_DASHBOARD, label = L["UI_DASHBOARD"] },
+    { id = TAB_TIMELINE,  label = L["UI_TIMELINE"] },
+    { id = TAB_SETTINGS,  label = L["UI_SETTINGS"] },
 }
 
 function MainFrame:Init()
@@ -38,7 +36,7 @@ function MainFrame:Init()
     frame.Title:SetText(format("%s \226\128\148 %s", L["UI_TITLE"], guildName))
 
     if ns.addon then
-        frame.Version:SetText("v" .. (ns.addon.version or "1.0.0"))
+        frame.Version:SetText("v" .. (ns.addon.version or "2.0.0"))
     end
 
     frame:RegisterForDrag("LeftButton")
@@ -48,7 +46,6 @@ function MainFrame:Init()
     end)
 
     self:CreateTabs()
-    self:CreateToolbarButtons()
 
     frame:SetScript("OnShow", function()
         PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
@@ -59,7 +56,7 @@ function MainFrame:Init()
 
     tinsert(UISpecialFrames, "GuildHistorianMainFrame")
 
-    self:SelectTab(TAB_TIMELINE)
+    self:SelectTab(TAB_DASHBOARD)
 end
 
 function MainFrame:CreateTabs()
@@ -114,28 +111,6 @@ function MainFrame:CreateTabs()
     end
 end
 
-function MainFrame:CreateToolbarButtons()
-    local tabContainer = frame.TabContainer
-
-    addNoteButton = CreateFrame("Button", nil, tabContainer, "UIPanelButtonTemplate")
-    addNoteButton:SetSize(70, 22)
-    addNoteButton:SetPoint("RIGHT", -4, 0)
-    addNoteButton:SetText(L["UI_ADD_NOTE"])
-    addNoteButton:SetScript("OnClick", function()
-        StaticPopup_Show("GUILDHISTORIAN_QUICK_NOTE")
-    end)
-
-    exportButton = CreateFrame("Button", nil, tabContainer, "UIPanelButtonTemplate")
-    exportButton:SetSize(60, 22)
-    exportButton:SetPoint("RIGHT", addNoteButton, "LEFT", -4, 0)
-    exportButton:SetText(L["UI_EXPORT"])
-    exportButton:SetScript("OnClick", function()
-        if ns.ExportFrame then
-            ns.ExportFrame:Show()
-        end
-    end)
-end
-
 function MainFrame:SelectTab(tabID)
     activeTab = tabID
 
@@ -151,38 +126,26 @@ function MainFrame:SelectTab(tabID)
         end
     end
 
+    if ns.Dashboard then ns.Dashboard:Hide() end
     if ns.Timeline then ns.Timeline:Hide() end
-    if ns.StatsPanel then ns.StatsPanel:Hide() end
     if ns.SettingsPanel then ns.SettingsPanel:HideInline() end
 
-    if tabID == TAB_TIMELINE then
+    if tabID == TAB_DASHBOARD then
+        if ns.Dashboard then ns.Dashboard:Show() end
+    elseif tabID == TAB_TIMELINE then
         if ns.Timeline then ns.Timeline:Show() end
-    elseif tabID == TAB_STATISTICS then
-        if ns.StatsPanel then ns.StatsPanel:Show() end
     elseif tabID == TAB_SETTINGS then
         if ns.SettingsPanel then ns.SettingsPanel:ShowInline() end
-    end
-
-    if exportButton then
-        if tabID == TAB_TIMELINE then
-            exportButton:Show()
-        else
-            exportButton:Hide()
-        end
     end
 end
 
 function MainFrame:Show()
     if not frame then self:Init() end
-    if frame then
-        frame:Show()
-    end
+    if frame then frame:Show() end
 end
 
 function MainFrame:Hide()
-    if frame then
-        frame:Hide()
-    end
+    if frame then frame:Hide() end
 end
 
 function MainFrame:Toggle()
@@ -203,16 +166,4 @@ end
 function MainFrame:GetContentFrame()
     if not frame then self:Init() end
     return frame and frame.Content
-end
-
-if ns.addon then
-    ns.addon:RegisterMessage("GH_EVENTS_UPDATED", function()
-        if MainFrame:IsShown() then
-            if activeTab == TAB_TIMELINE and ns.Timeline then
-                ns.Timeline:Refresh()
-            elseif activeTab == TAB_STATISTICS and ns.StatsPanel then
-                ns.StatsPanel:Refresh()
-            end
-        end
-    end)
 end
