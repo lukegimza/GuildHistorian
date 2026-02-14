@@ -12,28 +12,9 @@ local strmatch = strmatch
 local tostring = tostring
 local type = type
 local select = select
-local sbyte = string.byte
 local floor = math.floor
 local min = math.min
-
-function Utils.HashKey(str)
-    local hash = 5381
-    for i = 1, #str do
-        hash = (hash * 33 + sbyte(str, i)) % 2147483647
-    end
-    return hash
-end
-
-function Utils.BuildDedupKey(eventType, timestamp, ...)
-    local key = eventType .. ":" .. tostring(timestamp)
-    for i = 1, select("#", ...) do
-        local v = select(i, ...)
-        if v then
-            key = key .. ":" .. tostring(v)
-        end
-    end
-    return Utils.HashKey(key)
-end
+local time = time
 
 function Utils.TimestampToDisplay(timestamp)
     if not timestamp then return "Unknown" end
@@ -53,6 +34,12 @@ end
 function Utils.TimestampToYear(timestamp)
     local d = date("*t", timestamp)
     return d.year
+end
+
+function Utils.DateToTimestamp(month, day, year)
+    if not month or not day or not year then return 0 end
+    local realYear = year + 2000
+    return time({ year = realYear, month = month, day = day, hour = 0, min = 0, sec = 0 })
 end
 
 function Utils.RelativeTime(timestamp)
@@ -79,6 +66,16 @@ function Utils.RelativeTime(timestamp)
         local y = floor(diff / 31536000)
         return y .. (y == 1 and " year ago" or " years ago")
     end
+end
+
+function Utils.FormatNumber(n)
+    if not n then return "0" end
+    if n >= 1000000 then
+        return format("%.1fM", n / 1000000)
+    elseif n >= 1000 then
+        return format("%.1fK", n / 1000)
+    end
+    return tostring(n)
 end
 
 function Utils.GetPlayerID()
@@ -137,18 +134,6 @@ function Utils.Truncate(str, maxLen)
     if not str then return "" end
     if #str <= maxLen then return str end
     return strsub(str, 1, maxLen - 3) .. "..."
-end
-
-function Utils.CreateNoteEvent(text, playerID)
-    return {
-        type = ns.EVENT_TYPES.PLAYER_NOTE,
-        timestamp = GetServerTime(),
-        title = "Note",
-        description = text,
-        playerName = playerID,
-        key1 = playerID,
-        key2 = tostring(GetServerTime()),
-    }
 end
 
 function Utils.ApplySharedBackdrop(frame, alpha)
