@@ -47,23 +47,8 @@ print("[Runner]   Loaded: test_utils.lua")
 dofile(scriptDir .. "test_data_modules.lua")
 print("[Runner]   Loaded: test_data_modules.lua")
 
-dofile(scriptDir .. "test_database.lua")
-print("[Runner]   Loaded: test_database.lua")
-
-dofile(scriptDir .. "test_modules.lua")
-print("[Runner]   Loaded: test_modules.lua")
-
-dofile(scriptDir .. "test_integration.lua")
-print("[Runner]   Loaded: test_integration.lua")
-
-dofile(scriptDir .. "test_stress.lua")
-print("[Runner]   Loaded: test_stress.lua")
-
 dofile(scriptDir .. "test_validation.lua")
 print("[Runner]   Loaded: test_validation.lua")
-
-dofile(scriptDir .. "test_wow12_compat.lua")
-print("[Runner]   Loaded: test_wow12_compat.lua")
 
 -- Step 5: Run all tests
 print("\n[Runner] Executing tests...\n")

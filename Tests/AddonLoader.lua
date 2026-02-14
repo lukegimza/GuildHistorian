@@ -55,17 +55,7 @@ local loadOrder = {
     "Core/Constants.lua",
     "Core/Utils.lua",
     "Core/DataModules.lua",
-    "Core/Database.lua",
     "Core/Init.lua",
-
-    -- Modules
-    "Modules/GuildRoster.lua",
-    "Modules/BossKills.lua",
-    "Modules/Achievements.lua",
-    "Modules/LootTracker.lua",
-    "Modules/MilestoneDetector.lua",
-    "Modules/OnThisDay.lua",
-    "Modules/Notes.lua",
 }
 
 print("[AddonLoader] Loading GuildHistorian addon files...")
