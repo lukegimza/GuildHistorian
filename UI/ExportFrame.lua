@@ -4,6 +4,9 @@ local L = ns.L
 local Utils = ns.Utils
 local Database = ns.Database
 
+local format = format
+local ipairs = ipairs
+
 local ExportFrame = {}
 ns.ExportFrame = ExportFrame
 
@@ -21,37 +24,24 @@ function ExportFrame:Init()
     frame:EnableMouse(true)
     frame:RegisterForDrag("LeftButton")
 
-    frame:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Gold-Border",
-        tile = true,
-        tileSize = 32,
-        edgeSize = 24,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 },
-    })
-    frame:SetBackdropColor(0.05, 0.05, 0.1, 0.95)
-    frame:SetBackdropBorderColor(0.78, 0.65, 0.35, 1)
+    Utils.ApplySharedBackdrop(frame, 0.95)
 
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
 
-    -- Title
     local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 16, -14)
     title:SetText(L["UI_EXPORT_TITLE"])
     title:SetTextColor(0.78, 0.65, 0.35)
 
-    -- Close button
     local closeBtn = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     closeBtn:SetPoint("TOPRIGHT", -4, -4)
 
-    -- Instructions
     local instructions = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     instructions:SetPoint("TOPLEFT", 16, -38)
     instructions:SetText(L["UI_EXPORT_INSTRUCTIONS"])
     instructions:SetTextColor(0.6, 0.6, 0.6)
 
-    -- Scrollable EditBox
     local scrollFrame = CreateFrame("ScrollFrame", "GuildHistorianExportScroll", frame, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", 16, -58)
     scrollFrame:SetPoint("BOTTOMRIGHT", -34, 14)
@@ -85,7 +75,6 @@ function ExportFrame:Show()
         return
     end
 
-    -- Build export text
     local lines = {}
     local guildKey = Utils.GetGuildKey() or "Unknown"
 
@@ -130,7 +119,6 @@ function ExportFrame:Show()
     frame.editBox:SetWidth(frame.scrollFrame:GetWidth())
     frame:Show()
 
-    -- Select all text for easy copy
     frame.editBox:SetFocus()
     frame.editBox:HighlightText()
 end

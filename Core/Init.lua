@@ -4,6 +4,10 @@ local L = ns.L
 local Utils = ns.Utils
 local Database = ns.Database
 
+local format = format
+local strlower = strlower
+local tostring = tostring
+
 local addon = LibStub("AceAddon-3.0"):NewAddon(GH, "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0")
 ns.addon = addon
 
@@ -11,14 +15,11 @@ function addon:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("GuildHistorianDB", ns.DB_DEFAULTS, true)
     Database:Init(self.db)
 
-    -- Store version from TOC
     self.version = C_AddOns.GetAddOnMetadata(GH, "Version") or "1.0.0"
 
-    -- Register slash commands
     self:RegisterChatCommand("gh", "SlashCommand")
     self:RegisterChatCommand("guildhistorian", "SlashCommand")
 
-    -- Start flush timer
     self.flushTimer = self:ScheduleRepeatingTimer("FlushWriteQueue", ns.FLUSH_INTERVAL)
 end
 
@@ -30,12 +31,13 @@ function addon:OnEnable()
 
     self:Print(format(L["ADDON_LOADED"], self.version))
 
-    -- Request initial guild roster data
     C_GuildInfo.GuildRoster()
+
+    ns.MinimapButton:Init()
+    ns.SettingsPanel:Init()
 end
 
 function addon:OnDisable()
-    -- Final flush on disable
     Database:Flush()
     if self.flushTimer then
         self:CancelTimer(self.flushTimer)
@@ -44,6 +46,24 @@ end
 
 function addon:FlushWriteQueue()
     Database:Flush()
+end
+
+local function SubmitNote(text)
+    if not text or text == "" then
+        addon:Print(L["NOTE_EMPTY"])
+        return false
+    end
+    if #text > ns.MAX_NOTE_LENGTH then
+        addon:Print(L["NOTE_TOO_LONG"])
+        return false
+    end
+    local event = Utils.CreateNoteEvent(text, Utils.GetPlayerID())
+    if Database:QueueEvent(event) then
+        Database:Flush()
+        addon:Print(L["NOTE_ADDED"])
+        return true
+    end
+    return false
 end
 
 function addon:SlashCommand(input)
@@ -55,27 +75,7 @@ function addon:SlashCommand(input)
             ns.MainFrame:Toggle()
         end
     elseif cmd == "note" then
-        if not args or args == "" then
-            self:Print(L["NOTE_EMPTY"])
-            return
-        end
-        if #args > ns.MAX_NOTE_LENGTH then
-            self:Print(L["NOTE_TOO_LONG"])
-            return
-        end
-        local event = {
-            type = ns.EVENT_TYPES.PLAYER_NOTE,
-            timestamp = GetServerTime(),
-            title = "Note",
-            description = args,
-            playerName = Utils.GetPlayerID(),
-            key1 = Utils.GetPlayerID(),
-            key2 = tostring(GetServerTime()),
-        }
-        if Database:QueueEvent(event) then
-            Database:Flush()
-            self:Print(L["NOTE_ADDED"])
-        end
+        SubmitNote(args)
     elseif cmd == "search" then
         if not args or args == "" then
             self:Print("Usage: /gh search <text>")
@@ -113,8 +113,6 @@ function addon:SlashCommand(input)
         self:Print(self.db.profile.debug and L["DEBUG_ENABLED"] or L["DEBUG_DISABLED"])
     elseif cmd == "config" or cmd == "settings" then
         Settings.OpenToCategory(ns.settingsCategoryID)
-    elseif cmd == "purge" then
-        StaticPopup_Show("GUILDHISTORIAN_PURGE_CONFIRM")
     else
         self:Print(L["SLASH_HELP"])
     end
@@ -126,35 +124,29 @@ function addon:DebugPrint(...)
     end
 end
 
--- Static popup for purge confirmation
-StaticPopupDialogs["GUILDHISTORIAN_PURGE_CONFIRM"] = {
-    text = "Are you sure you want to purge all Guild Historian data for this guild?\n\nType PURGE to confirm:",
-    button1 = "Confirm",
+StaticPopupDialogs["GUILDHISTORIAN_QUICK_NOTE"] = {
+    text = "Add a note to guild history:",
+    button1 = "Save",
     button2 = "Cancel",
     hasEditBox = true,
-    editBoxWidth = 200,
+    editBoxWidth = 300,
+    maxLetters = ns.MAX_NOTE_LENGTH,
     OnAccept = function(self)
-        local text = self.editBox:GetText()
-        if text == "PURGE" then
-            if Database:PurgeGuildData() then
-                local guildKey = Utils.GetGuildKey() or "Unknown"
-                ns.addon:Print(format(L["PURGE_SUCCESS"], guildKey))
-            end
-        else
-            ns.addon:Print(L["PURGE_CANCELLED"])
-        end
+        SubmitNote(self.editBox:GetText())
     end,
     OnShow = function(self)
-        self.button1:Disable()
         self.editBox:SetText("")
+        self.editBox:SetFocus()
     end,
-    EditBoxOnTextChanged = function(self)
+    EditBoxOnEnterPressed = function(self)
         local parent = self:GetParent()
-        if self:GetText() == "PURGE" then
-            parent.button1:Enable()
-        else
-            parent.button1:Disable()
+        local text = self:GetText()
+        if text and text ~= "" then
+            parent.button1:Click()
         end
+    end,
+    EditBoxOnEscapePressed = function(self)
+        self:GetParent():Hide()
     end,
     timeout = 0,
     whileDead = true,

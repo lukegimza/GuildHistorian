@@ -4,6 +4,11 @@ local L = ns.L
 local Database = ns.Database
 local addon = ns.addon
 
+local format = format
+local pairs = pairs
+local tostring = tostring
+local strmatch = strmatch
+
 local GuildRoster = addon:NewModule("GuildRoster", "AceEvent-3.0", "AceTimer-3.0")
 
 local debounceTimer = nil
@@ -15,7 +20,6 @@ function GuildRoster:OnEnable()
     self:RegisterEvent("GUILD_ROSTER_UPDATE", "OnGuildRosterUpdate")
     self:RegisterEvent("CHAT_MSG_SYSTEM", "OnSystemMessage")
 
-    -- Request initial roster
     C_GuildInfo.GuildRoster()
 end
 
@@ -28,7 +32,6 @@ function GuildRoster:OnDisable()
 end
 
 function GuildRoster:OnGuildRosterUpdate()
-    -- Debounce: wait for burst to settle
     if debounceTimer then
         self:CancelTimer(debounceTimer)
     end
@@ -38,7 +41,6 @@ end
 function GuildRoster:DebouncedRosterScan()
     debounceTimer = nil
 
-    -- Throttle: don't do a full scan more than once per ROSTER_SCAN_INTERVAL
     local now = GetServerTime()
     if (now - lastFullScan) < ns.ROSTER_SCAN_INTERVAL then
         return
@@ -71,23 +73,18 @@ function GuildRoster:FullRosterScan()
         end
     end
 
-    local oldSnapshot, _ = Database:GetRosterSnapshot()
+    local oldSnapshot = Database:GetRosterSnapshot()
 
-    -- First scan: just save the snapshot, don't generate events
     if not next(oldSnapshot) then
         Database:SaveRosterSnapshot(newSnapshot)
-        -- Initialize member history for all current members
         for name in pairs(newSnapshot) do
             Database:UpdateMemberHistory(name, "join")
         end
-        addon:DebugPrint("Initial roster snapshot saved with " .. numMembers .. " members.")
         return
     end
 
-    -- Compare snapshots
     local now = GetServerTime()
 
-    -- Check for new members (in new but not old)
     for name, info in pairs(newSnapshot) do
         if not oldSnapshot[name] then
             Database:QueueEvent({
@@ -99,11 +96,9 @@ function GuildRoster:FullRosterScan()
                 key1 = name,
             })
             Database:UpdateMemberHistory(name, "join")
-
         else
             local oldInfo = oldSnapshot[name]
 
-            -- Check for rank changes
             if oldInfo.rankIndex ~= info.rankIndex then
                 local oldRank = oldInfo.rank or "Unknown"
                 local newRank = info.rank or "Unknown"
@@ -118,7 +113,6 @@ function GuildRoster:FullRosterScan()
                 })
             end
 
-            -- Check for max level reached
             if info.level and oldInfo.level and info.level > oldInfo.level then
                 local maxLevel = MAX_PLAYER_LEVEL or 80
                 if info.level >= maxLevel and oldInfo.level < maxLevel then
@@ -135,7 +129,6 @@ function GuildRoster:FullRosterScan()
         end
     end
 
-    -- Check for departed members (in old but not new)
     for name, info in pairs(oldSnapshot) do
         if not newSnapshot[name] then
             Database:QueueEvent({
@@ -150,11 +143,9 @@ function GuildRoster:FullRosterScan()
         end
     end
 
-    -- Save updated snapshot
     Database:SaveRosterSnapshot(newSnapshot)
 end
 
--- Detect join/leave from system messages as backup
 local JOIN_PATTERN = "(.+) has joined the guild."
 local LEAVE_PATTERN = "(.+) has left the guild."
 local REMOVE_PATTERN = "(.+) has been kicked .+"
@@ -162,18 +153,7 @@ local REMOVE_PATTERN = "(.+) has been kicked .+"
 function GuildRoster:OnSystemMessage(_, msg)
     if not msg then return end
 
-    local joined = strmatch(msg, JOIN_PATTERN)
-    if joined then
-        -- Schedule a roster update soon to get the details
-        C_GuildInfo.GuildRoster()
-        return
-    end
-
-    local left = strmatch(msg, LEAVE_PATTERN)
-    if not left then
-        left = strmatch(msg, REMOVE_PATTERN)
-    end
-    if left then
+    if strmatch(msg, JOIN_PATTERN) or strmatch(msg, LEAVE_PATTERN) or strmatch(msg, REMOVE_PATTERN) then
         C_GuildInfo.GuildRoster()
     end
 end

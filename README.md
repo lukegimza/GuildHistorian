@@ -1,6 +1,6 @@
 # Guild Historian
 
-A World of Warcraft addon that passively records your guild's milestones and presents them in a browsable in-game timeline.
+A World of Warcraft addon that passively records your guild's milestones and presents them in a browsable in-game timeline. Every boss kill, roster change, achievement, and loot drop is captured automatically so your guild's story is never lost.
 
 ## Features
 
@@ -16,7 +16,7 @@ A World of Warcraft addon that passively records your guild's milestones and pre
 
 ## Installation
 
-1. Download the latest release from the [Releases page](https://github.com/lukegimza/GuildHistorian/releases)
+1. Download the latest release
 2. Extract the `GuildHistorian` folder into your `World of Warcraft/_retail_/Interface/AddOns/` directory
 3. Restart WoW or type `/reload` if the game is running
 
@@ -71,7 +71,7 @@ Contributions for additional translations are welcome!
 
 ## Requirements
 
-- World of Warcraft Retail (The War Within, Interface 110100)
+- World of Warcraft Retail
 - Must be in a guild to track events
 
 ## Libraries

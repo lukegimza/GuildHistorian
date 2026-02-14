@@ -7,17 +7,11 @@ local addon = ns.addon
 local Notes = addon:NewModule("Notes", "AceEvent-3.0")
 
 function Notes:OnEnable()
-    -- Notes module is always active; slash command is handled in Init.lua
 end
 
 function Notes:OnDisable()
-    -- Nothing to clean up
 end
 
---- Add a note to an existing event
---- @param eventIndex number Index in the events array
---- @param noteText string
---- @return boolean
 function Notes:AddNoteToEvent(eventIndex, noteText)
     if not noteText or noteText == "" then return false end
     if #noteText > ns.MAX_NOTE_LENGTH then return false end

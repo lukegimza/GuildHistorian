@@ -3,6 +3,8 @@ local GH, ns = ...
 local L = ns.L
 local Database = ns.Database
 
+local format = format
+
 local MinimapButton = {}
 ns.MinimapButton = MinimapButton
 
@@ -13,7 +15,7 @@ function MinimapButton:Init()
     local dataObj = LDB:NewDataObject(ns.ADDON_NAME, {
         type = "data source",
         text = L["ADDON_NAME"],
-        icon = "Interface\\Icons\\INV_Misc_Book_09",
+        icon = "Interface\\AddOns\\GuildHistorian\\Assets\\logo_400x400",
         OnClick = function(_, button)
             if button == "LeftButton" then
                 if ns.MainFrame then
@@ -30,8 +32,7 @@ function MinimapButton:Init()
                 L["MINIMAP_TOOLTIP_TITLE"],
                 ns.addon and ns.addon.version or "1.0.0"))
 
-            local count = Database:GetEventCount()
-            tooltip:AddLine(format(L["MINIMAP_TOOLTIP_EVENTS"], count), 1, 1, 1)
+            tooltip:AddLine(format(L["MINIMAP_TOOLTIP_EVENTS"], Database:GetEventCount()), 1, 1, 1)
             tooltip:AddLine(" ")
             tooltip:AddLine(L["MINIMAP_TOOLTIP_LEFT"])
             tooltip:AddLine(L["MINIMAP_TOOLTIP_RIGHT"])

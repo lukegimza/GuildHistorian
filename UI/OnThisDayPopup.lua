@@ -1,6 +1,11 @@
 local GH, ns = ...
 
 local L = ns.L
+local Utils = ns.Utils
+
+local format = format
+local ipairs = ipairs
+local max = math.max
 
 local OnThisDayPopup = {}
 ns.OnThisDayPopup = OnThisDayPopup
@@ -14,35 +19,19 @@ function OnThisDayPopup:Init()
     popup = GuildHistorianOnThisDayPopup
     if not popup then return end
 
-    -- Set backdrop
-    popup:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Gold-Border",
-        tile = true,
-        tileSize = 32,
-        edgeSize = 24,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 },
-    })
-    popup:SetBackdropColor(0.05, 0.05, 0.1, 0.95)
-    popup:SetBackdropBorderColor(0.78, 0.65, 0.35, 1)
+    Utils.ApplySharedBackdrop(popup, 0.95)
 
-    -- Make draggable
     popup:RegisterForDrag("LeftButton")
 
-    -- Title
     popup.Title:SetText(L["ON_THIS_DAY_TITLE"])
-
-    -- Click hint
     popup.ClickHint:SetText(L["ON_THIS_DAY_CLICK"])
 
-    -- Click to open timeline
     popup:SetScript("OnMouseDown", function(self, button)
         if button == "LeftButton" then
             OnThisDayPopup:OnClick()
         end
     end)
 
-    -- Close button dismisses
     popup.CloseButton:SetScript("OnClick", function()
         OnThisDayPopup:Dismiss()
     end)
@@ -53,7 +42,6 @@ function OnThisDayPopup:ShowEvents(events)
     if not popup then return end
     if not events or #events == 0 then return end
 
-    -- Build content text
     local lines = {}
     for _, entry in ipairs(events) do
         lines[#lines + 1] = format("|cffffd700%s|r", format(L["ON_THIS_DAY_YEARS_AGO"], entry.yearsAgo))
@@ -63,14 +51,12 @@ function OnThisDayPopup:ShowEvents(events)
 
     popup.Content:SetText(table.concat(lines, "\n"))
 
-    -- Adjust height based on content
     local contentHeight = popup.Content:GetStringHeight()
-    popup:SetHeight(math.max(140, contentHeight + 80))
+    popup:SetHeight(max(140, contentHeight + 80))
 
     popup:Show()
     PlaySound(SOUNDKIT.IG_MAINMENU_OPEN)
 
-    -- Auto-dismiss timer
     if dismissTimer then
         dismissTimer:Cancel()
     end
@@ -82,8 +68,11 @@ end
 function OnThisDayPopup:OnClick()
     self:Dismiss()
 
-    -- Open main frame with timeline
-    if ns.MainFrame then
+    local now = GetServerTime()
+    local month, day = Utils.TimestampToMonthDay(now)
+    if ns.Timeline then
+        ns.Timeline:FilterByDate(month, day)
+    elseif ns.MainFrame then
         ns.MainFrame:Show()
     end
 end

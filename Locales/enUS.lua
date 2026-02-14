@@ -3,16 +3,12 @@ local GH, ns = ...
 local L = {}
 ns.L = L
 
--- General
 L["ADDON_NAME"] = "Guild Historian"
-L["ADDON_LOADED"] = "Guild Historian v%s loaded. Type /gh for options."
-L["SLASH_HELP"] = "Commands: toggle, note, search, stats, export, debug, config, purge"
+L["ADDON_LOADED"] = "Guild Historian v%s loaded. Click the minimap icon or type /gh to open."
+L["SLASH_HELP"] = "Commands: toggle, note, search, stats, export, debug, config"
 L["NOT_IN_GUILD"] = "You are not in a guild."
 L["DEBUG_ENABLED"] = "Debug mode enabled."
 L["DEBUG_DISABLED"] = "Debug mode disabled."
-L["PURGE_CONFIRM"] = "Are you sure you want to purge all data for this guild? Type 'PURGE' to confirm."
-L["PURGE_SUCCESS"] = "All data for %s has been purged."
-L["PURGE_CANCELLED"] = "Purge cancelled."
 L["EXPORT_NO_DATA"] = "No events to export."
 L["NOTE_ADDED"] = "Note added to guild history."
 L["NOTE_TOO_LONG"] = "Note is too long (max 500 characters)."
@@ -20,7 +16,6 @@ L["NOTE_EMPTY"] = "Please provide a note. Usage: /gh note <text>"
 L["SEARCH_NO_RESULTS"] = "No events found matching '%s'."
 L["SEARCH_RESULTS"] = "Found %d event(s) matching '%s':"
 
--- Event Types
 L["BOSS_KILL"] = "Boss Kill"
 L["FIRST_KILL"] = "First Kill"
 L["MEMBER_JOIN"] = "Member Joined"
@@ -33,7 +28,6 @@ L["LOOT"] = "Loot"
 L["MILESTONE"] = "Milestone"
 L["PLAYER_NOTE"] = "Note"
 
--- Event Descriptions
 L["BOSS_KILL_DESC"] = "%s defeated in %s (%s)"
 L["FIRST_KILL_DESC"] = "First Kill: %s in %s (%s)!"
 L["MEMBER_JOIN_DESC"] = "%s joined the guild"
@@ -48,7 +42,6 @@ L["MILESTONE_ACHIEVEMENT_POINTS"] = "Guild reached %d achievement points!"
 L["MILESTONE_ANNIVERSARY"] = "%s has been in the guild for %d year(s)!"
 L["MILESTONE_KILL_COUNT"] = "Guild has recorded %d boss kills!"
 
--- UI
 L["UI_TITLE"] = "Guild Historian"
 L["UI_TIMELINE"] = "Timeline"
 L["UI_STATISTICS"] = "Statistics"
@@ -57,7 +50,7 @@ L["UI_CLOSE"] = "Close"
 L["UI_FILTER"] = "Filter"
 L["UI_SEARCH"] = "Search..."
 L["UI_CLEAR_FILTERS"] = "Clear Filters"
-L["UI_NO_EVENTS"] = "No events recorded yet. Join a guild and start making history!"
+L["UI_NO_EVENTS"] = "No events recorded yet. Guild Historian automatically tracks boss kills, roster changes, achievements, and loot. Use /gh note to add notes, or click Add Note above."
 L["UI_NO_FILTERED_EVENTS"] = "No events match your current filters."
 L["UI_PARTICIPANTS"] = "%d participants"
 L["UI_DATE_RANGE"] = "Date Range"
@@ -73,7 +66,6 @@ L["UI_EXPORT_TITLE"] = "Export Guild History"
 L["UI_EXPORT_INSTRUCTIONS"] = "Press Ctrl+A to select all, then Ctrl+C to copy."
 L["UI_COPY"] = "Copy"
 
--- Statistics
 L["STATS_TOTAL_EVENTS"] = "Total Events"
 L["STATS_FIRST_KILLS"] = "First Kills"
 L["STATS_MEMBERS_TRACKED"] = "Members Tracked"
@@ -82,7 +74,6 @@ L["STATS_LONGEST_SERVING"] = "Longest-Serving Members"
 L["STATS_BY_TYPE"] = "Events by Type"
 L["STATS_SINCE"] = "Tracking since %s"
 
--- Settings
 L["SETTINGS_TRACKING"] = "Tracking"
 L["SETTINGS_TRACK_BOSS_KILLS"] = "Track Boss Kills"
 L["SETTINGS_TRACK_BOSS_KILLS_DESC"] = "Record boss kills in guild groups"
@@ -103,18 +94,15 @@ L["SETTINGS_DATA"] = "Data"
 L["SETTINGS_MAX_EVENTS"] = "Maximum Events"
 L["SETTINGS_MAX_EVENTS_DESC"] = "Maximum number of events to store (oldest are pruned first)"
 
--- On This Day
 L["ON_THIS_DAY_TITLE"] = "On This Day..."
 L["ON_THIS_DAY_YEARS_AGO"] = "%d year(s) ago today:"
 L["ON_THIS_DAY_CLICK"] = "Click to view in timeline"
 
--- Minimap
 L["MINIMAP_TOOLTIP_TITLE"] = "Guild Historian"
 L["MINIMAP_TOOLTIP_EVENTS"] = "%d events recorded"
 L["MINIMAP_TOOLTIP_LEFT"] = "|cffeda55fLeft-Click|r to toggle timeline"
 L["MINIMAP_TOOLTIP_RIGHT"] = "|cffeda55fRight-Click|r to open settings"
 
--- Quality names
 L["QUALITY_UNCOMMON"] = "Uncommon"
 L["QUALITY_RARE"] = "Rare"
 L["QUALITY_EPIC"] = "Epic"

@@ -5,18 +5,26 @@ ns.Database = Database
 
 local Utils = ns.Utils
 
--- Write queue for batched flushes
-local writeQueue = {}
-local dedupCache = {}
+local format = format
+local ipairs = ipairs
+local pairs = pairs
+local strlower = strlower
+local strfind = strfind
+local tostring = tostring
 
---- Initialize the database module
+local writeQueue = {}
+local dedupIndex = {}
+
 function Database:Init(db)
     self.db = db
     self:RunMigrations()
 end
 
---- Get the guild data table for the current guild, creating if needed
---- @return table|nil
+function Database:ResetCaches()
+    wipe(writeQueue)
+    wipe(dedupIndex)
+end
+
 function Database:GetGuildData()
     local key = Utils.GetGuildKey()
     if not key then return nil end
@@ -35,21 +43,24 @@ function Database:GetGuildData()
     return guilds[key]
 end
 
---- Get the guild key (pass-through for convenience)
---- @return string|nil
 function Database:GetGuildKey()
     return Utils.GetGuildKey()
 end
 
---- Queue an event for writing
---- @param event table The event data
---- @return boolean Whether the event was queued (false if duplicate)
+function Database:BuildDedupIndex(guildData)
+    wipe(dedupIndex)
+    for _, event in ipairs(guildData.events) do
+        if event.dedupKey then
+            dedupIndex[event.dedupKey] = true
+        end
+    end
+end
+
 function Database:QueueEvent(event)
     if not event or not event.type or not event.timestamp then
         return false
     end
 
-    -- Build dedup key
     local dedupKey = event.dedupKey
     if not dedupKey then
         dedupKey = Utils.BuildDedupKey(event.type, event.timestamp,
@@ -57,28 +68,25 @@ function Database:QueueEvent(event)
         event.dedupKey = dedupKey
     end
 
-    -- Check dedup cache (in-memory)
-    if dedupCache[dedupKey] then
+    if dedupIndex[dedupKey] then
         return false
     end
 
-    -- Check existing events
     local guildData = self:GetGuildData()
     if not guildData then return false end
 
-    for _, existing in ipairs(guildData.events) do
-        if existing.dedupKey == dedupKey then
-            dedupCache[dedupKey] = true
+    if not next(dedupIndex) and #guildData.events > 0 then
+        self:BuildDedupIndex(guildData)
+        if dedupIndex[dedupKey] then
             return false
         end
     end
 
-    dedupCache[dedupKey] = true
+    dedupIndex[dedupKey] = true
     writeQueue[#writeQueue + 1] = event
     return true
 end
 
---- Flush the write queue to the database
 function Database:Flush()
     if #writeQueue == 0 then return end
 
@@ -90,36 +98,38 @@ function Database:Flush()
 
     local events = guildData.events
     for _, event in ipairs(writeQueue) do
-        -- Insert at the beginning (descending timestamp order)
         tinsert(events, 1, event)
+    end
+
+    if ns.addon then
+        for _, event in ipairs(writeQueue) do
+            if event.type == ns.EVENT_TYPES.MILESTONE and event.title then
+                ns.addon:Print(format("|cffff8000[Guild Historian]|r %s", event.title))
+            elseif event.type == ns.EVENT_TYPES.FIRST_KILL and event.title then
+                ns.addon:Print(format("|cffffd700[Guild Historian]|r %s", event.title))
+            end
+        end
     end
 
     local flushed = #writeQueue
     wipe(writeQueue)
 
-    -- Prune if over limit
     self:PruneEvents(guildData)
 
-    -- Fire update notification
     if ns.addon then
         ns.addon:SendMessage("GH_EVENTS_UPDATED", flushed)
     end
 end
 
---- Prune events to stay under the max limit
---- @param guildData table
 function Database:PruneEvents(guildData)
     if not guildData then return end
     local maxEvents = ns.addon and ns.addon.db.profile.data.maxEvents or ns.MAX_EVENTS_DEFAULT
     local events = guildData.events
     while #events > maxEvents do
-        tremove(events)  -- Remove oldest (last item since sorted descending)
+        tremove(events)
     end
 end
 
---- Get all events, optionally filtered
---- @param filters table|nil Optional filter criteria
---- @return table Array of events
 function Database:GetEvents(filters)
     local guildData = self:GetGuildData()
     if not guildData then return {} end
@@ -136,19 +146,13 @@ function Database:GetEvents(filters)
     return filtered
 end
 
---- Check if an event matches the given filters
---- @param event table
---- @param filters table
---- @return boolean
 function Database:MatchesFilters(event, filters)
-    -- Type filter
     if filters.types and next(filters.types) then
         if not filters.types[event.type] then
             return false
         end
     end
 
-    -- Date range filter
     if filters.startDate and event.timestamp < filters.startDate then
         return false
     end
@@ -156,14 +160,19 @@ function Database:MatchesFilters(event, filters)
         return false
     end
 
-    -- Difficulty filter
     if filters.difficultyID and event.difficultyID then
         if event.difficultyID ~= filters.difficultyID then
             return false
         end
     end
 
-    -- Text search filter
+    if filters.filterMonth and filters.filterDay then
+        local eventMonth, eventDay = Utils.TimestampToMonthDay(event.timestamp)
+        if eventMonth ~= filters.filterMonth or eventDay ~= filters.filterDay then
+            return false
+        end
+    end
+
     if filters.search and filters.search ~= "" then
         local searchLower = strlower(filters.search)
         local title = event.title and strlower(event.title) or ""
@@ -179,15 +188,11 @@ function Database:MatchesFilters(event, filters)
     return true
 end
 
---- Record a first kill
---- @param encounterID number
---- @param difficultyID number
---- @return boolean Whether this is actually a first kill
 function Database:RecordFirstKill(encounterID, difficultyID)
     local guildData = self:GetGuildData()
     if not guildData then return false end
 
-    local key = encounterID .. "-" .. difficultyID
+    local key = encounterID .. "-" .. (difficultyID or 0)
     if guildData.firstKills[key] then
         return false
     end
@@ -195,8 +200,6 @@ function Database:RecordFirstKill(encounterID, difficultyID)
     return true
 end
 
---- Save a roster snapshot
---- @param snapshot table
 function Database:SaveRosterSnapshot(snapshot)
     local guildData = self:GetGuildData()
     if not guildData then return end
@@ -204,17 +207,12 @@ function Database:SaveRosterSnapshot(snapshot)
     guildData.lastRosterScan = GetServerTime()
 end
 
---- Get the last roster snapshot
---- @return table, number snapshot and timestamp
 function Database:GetRosterSnapshot()
     local guildData = self:GetGuildData()
     if not guildData then return {}, 0 end
     return guildData.rosterSnapshot or {}, guildData.lastRosterScan or 0
 end
 
---- Update member history tracking
---- @param name string "Name-Realm"
---- @param action string "join" or "leave"
 function Database:UpdateMemberHistory(name, action)
     local guildData = self:GetGuildData()
     if not guildData then return end
@@ -224,18 +222,18 @@ function Database:UpdateMemberHistory(name, action)
     end
 
     local history = guildData.memberHistory[name]
+    local now = GetServerTime()
+
     if action == "join" then
-        history.firstSeen = history.firstSeen or GetServerTime()
-        history.lastSeen = GetServerTime()
+        history.firstSeen = history.firstSeen or now
+        history.lastSeen = now
         history.isActive = true
     elseif action == "leave" then
-        history.lastSeen = GetServerTime()
+        history.lastSeen = now
         history.isActive = false
     end
 end
 
---- Get statistics for the Statistics panel
---- @return table
 function Database:GetStats()
     local guildData = self:GetGuildData()
     if not guildData then
@@ -262,12 +260,10 @@ function Database:GetStats()
         oldestEvent = nil,
     }
 
-    -- Count first kills
     for _ in pairs(guildData.firstKills) do
         stats.firstKills = stats.firstKills + 1
     end
 
-    -- Count members
     local memberEventCount = {}
     for _, history in pairs(guildData.memberHistory) do
         stats.membersTracked = stats.membersTracked + 1
@@ -276,7 +272,6 @@ function Database:GetStats()
         end
     end
 
-    -- Events by type and member activity
     for _, event in ipairs(guildData.events) do
         stats.eventsByType[event.type] = (stats.eventsByType[event.type] or 0) + 1
 
@@ -284,13 +279,11 @@ function Database:GetStats()
             memberEventCount[event.playerName] = (memberEventCount[event.playerName] or 0) + 1
         end
 
-        -- Track oldest event
         if not stats.oldestEvent or event.timestamp < stats.oldestEvent then
             stats.oldestEvent = event.timestamp
         end
     end
 
-    -- Most active members (top 5)
     local activeList = {}
     for name, count in pairs(memberEventCount) do
         activeList[#activeList + 1] = { name = name, count = count }
@@ -300,7 +293,6 @@ function Database:GetStats()
         stats.mostActive[i] = activeList[i]
     end
 
-    -- Longest serving members (top 5)
     local servingList = {}
     for name, history in pairs(guildData.memberHistory) do
         if history.firstSeen then
@@ -315,43 +307,21 @@ function Database:GetStats()
     return stats
 end
 
---- Purge all data for the current guild
-function Database:PurgeGuildData()
-    local key = Utils.GetGuildKey()
-    if not key then return false end
-
-    self.db.global.guilds[key] = nil
-    wipe(writeQueue)
-    wipe(dedupCache)
-
-    if ns.addon then
-        ns.addon:SendMessage("GH_EVENTS_UPDATED", 0)
-    end
-    return true
-end
-
---- Run database migrations
 function Database:RunMigrations()
     local currentVersion = self.db.global.dbVersion or 0
     if currentVersion >= ns.DB_VERSION then return end
 
-    -- Migration v0 -> v1: initial structure (no changes needed for fresh installs)
     if currentVersion < 1 then
         self.db.global.dbVersion = 1
     end
 end
 
---- Get the total event count for the current guild
---- @return number
 function Database:GetEventCount()
     local guildData = self:GetGuildData()
     if not guildData then return 0 end
     return #guildData.events
 end
 
---- Search events by text
---- @param query string
---- @return table
 function Database:SearchEvents(query)
     return self:GetEvents({ search = query })
 end

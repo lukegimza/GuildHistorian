@@ -1,11 +1,11 @@
-## Interface: 110100
+## Interface: 120001
 ## Title: Guild Historian
 ## Notes: Passively records guild milestones and presents them in a browsable in-game timeline.
 ## Author: GIMZWARE
 ## Version: 1.0.0
 ## SavedVariables: GuildHistorianDB
 ## SavedVariablesPerCharacter: GuildHistorianCharDB
-## IconTexture: Interface\Icons\INV_Misc_Book_09
+## IconTexture: Interface\AddOns\GuildHistorian\Assets\logo_400x400
 
 # Libraries
 Libs\libs.xml

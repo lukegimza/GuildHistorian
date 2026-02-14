@@ -4,6 +4,10 @@ local L = ns.L
 local Utils = ns.Utils
 local Database = ns.Database
 
+local format = format
+local pairs = pairs
+local ipairs = ipairs
+
 local StatsPanel = {}
 ns.StatsPanel = StatsPanel
 
@@ -19,13 +23,11 @@ function StatsPanel:Init()
     container:SetAllPoints()
     container:Hide()
 
-    -- Title
     local title = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 16, -8)
     title:SetText(L["UI_STATISTICS"])
     title:SetTextColor(0.78, 0.65, 0.35)
 
-    -- Stats will be laid out in two columns
     container.leftColumn = CreateFrame("Frame", nil, container)
     container.leftColumn:SetPoint("TOPLEFT", 16, -36)
     container.leftColumn:SetPoint("BOTTOMLEFT", 16, 8)
@@ -35,10 +37,13 @@ function StatsPanel:Init()
     container.rightColumn:SetPoint("TOPLEFT", container.leftColumn, "TOPRIGHT", 20, 0)
     container.rightColumn:SetPoint("BOTTOMRIGHT", -16, 8)
 
-    -- Create stat display elements
     container.statLabels = {}
 
     self:Refresh()
+end
+
+function StatsPanel:TrackElement(element)
+    container.statLabels[#container.statLabels + 1] = element
 end
 
 function StatsPanel:CreateStatLine(parent, yOffset, label, value)
@@ -46,11 +51,13 @@ function StatsPanel:CreateStatLine(parent, yOffset, label, value)
     labelText:SetPoint("TOPLEFT", 0, yOffset)
     labelText:SetTextColor(0.7, 0.7, 0.7)
     labelText:SetText(label)
+    self:TrackElement(labelText)
 
     local valueText = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     valueText:SetPoint("TOPLEFT", 0, yOffset - 16)
     valueText:SetTextColor(1, 1, 1)
     valueText:SetText(tostring(value))
+    self:TrackElement(valueText)
 
     return valueText, yOffset - 44
 end
@@ -60,12 +67,14 @@ function StatsPanel:CreateSectionHeader(parent, yOffset, text)
     header:SetPoint("TOPLEFT", 0, yOffset)
     header:SetTextColor(0.78, 0.65, 0.35)
     header:SetText(text)
+    self:TrackElement(header)
 
     local line = parent:CreateTexture(nil, "ARTWORK")
     line:SetHeight(1)
     line:SetPoint("TOPLEFT", 0, yOffset - 14)
     line:SetPoint("TOPRIGHT", 0, yOffset - 14)
     line:SetColorTexture(0.78, 0.65, 0.35, 0.3)
+    self:TrackElement(line)
 
     return yOffset - 24
 end
@@ -73,52 +82,30 @@ end
 function StatsPanel:Refresh()
     if not container then self:Init(); return end
 
-    -- Clear existing dynamic content
     for _, child in ipairs(container.statLabels) do
-        child:SetText("")
+        child:Hide()
     end
     container.statLabels = {}
 
     local stats = Database:GetStats()
 
-    -- Remove old children by re-creating columns
-    container.leftColumn:Hide()
-    container.rightColumn:Hide()
-
-    container.leftColumn = CreateFrame("Frame", nil, container)
-    container.leftColumn:SetPoint("TOPLEFT", 16, -36)
-    container.leftColumn:SetPoint("BOTTOMLEFT", 16, 8)
-    container.leftColumn:SetWidth(280)
-
-    container.rightColumn = CreateFrame("Frame", nil, container)
-    container.rightColumn:SetPoint("TOPLEFT", container.leftColumn, "TOPRIGHT", 20, 0)
-    container.rightColumn:SetPoint("BOTTOMRIGHT", -16, 8)
-
     local left = container.leftColumn
     local right = container.rightColumn
 
-    -- Left column: Overview stats
     local y = 0
     y = self:CreateSectionHeader(left, y, "Overview")
 
     local val
     val, y = self:CreateStatLine(left, y, L["STATS_TOTAL_EVENTS"], stats.totalEvents)
-    container.statLabels[#container.statLabels + 1] = val
-
     val, y = self:CreateStatLine(left, y, L["STATS_FIRST_KILLS"], stats.firstKills)
-    container.statLabels[#container.statLabels + 1] = val
-
     val, y = self:CreateStatLine(left, y, L["STATS_MEMBERS_TRACKED"],
         format("%d (active: %d)", stats.membersTracked, stats.activeMembers))
-    container.statLabels[#container.statLabels + 1] = val
 
     if stats.oldestEvent then
         val, y = self:CreateStatLine(left, y, "Tracking Since",
             Utils.TimestampToDisplay(stats.oldestEvent))
-        container.statLabels[#container.statLabels + 1] = val
     end
 
-    -- Events by type breakdown
     y = y - 10
     y = self:CreateSectionHeader(left, y, L["STATS_BY_TYPE"])
 
@@ -132,11 +119,10 @@ function StatsPanel:Refresh()
             label:SetTextColor(typeInfo.color[1], typeInfo.color[2], typeInfo.color[3])
         end
         label:SetText(format("%s: %d", typeName, count))
-        container.statLabels[#container.statLabels + 1] = label
+        self:TrackElement(label)
         y = y - 16
     end
 
-    -- Right column: Most active and longest serving
     y = 0
     y = self:CreateSectionHeader(right, y, L["STATS_MOST_ACTIVE"])
 
@@ -145,7 +131,7 @@ function StatsPanel:Refresh()
         label:SetPoint("TOPLEFT", 0, y)
         label:SetText(format("%d. %s (%d events)", i, entry.name, entry.count))
         label:SetTextColor(0.9, 0.9, 0.9)
-        container.statLabels[#container.statLabels + 1] = label
+        self:TrackElement(label)
         y = y - 20
     end
 
@@ -154,7 +140,7 @@ function StatsPanel:Refresh()
         label:SetPoint("TOPLEFT", 0, y)
         label:SetText("No data yet")
         label:SetTextColor(0.5, 0.5, 0.5)
-        container.statLabels[#container.statLabels + 1] = label
+        self:TrackElement(label)
         y = y - 20
     end
 
@@ -167,7 +153,7 @@ function StatsPanel:Refresh()
         local since = Utils.TimestampToDisplay(entry.firstSeen)
         label:SetText(format("%d. %s (since %s)", i, entry.name, since))
         label:SetTextColor(0.9, 0.9, 0.9)
-        container.statLabels[#container.statLabels + 1] = label
+        self:TrackElement(label)
         y = y - 20
     end
 
@@ -176,7 +162,7 @@ function StatsPanel:Refresh()
         label:SetPoint("TOPLEFT", 0, y)
         label:SetText("No data yet")
         label:SetTextColor(0.5, 0.5, 0.5)
-        container.statLabels[#container.statLabels + 1] = label
+        self:TrackElement(label)
     end
 end
 

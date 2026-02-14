@@ -11,14 +11,14 @@
 
         <Layers>
             <Layer level="ARTWORK">
-                <FontString name="$parentTitle" inherits="GameFontNormalLarge" justifyH="CENTER">
+                <FontString name="$parentTitle" parentKey="Title" inherits="GameFontNormalLarge" justifyH="CENTER">
                     <Anchors>
                         <Anchor point="TOP" x="0" y="-12"/>
                     </Anchors>
                     <Color r="1" g="0.84" b="0"/>
                 </FontString>
 
-                <FontString name="$parentContent" inherits="GameFontNormal" justifyH="LEFT" wordwrap="true">
+                <FontString name="$parentContent" parentKey="Content" inherits="GameFontNormal" justifyH="LEFT" wordwrap="true">
                     <Size x="310" y="0"/>
                     <Anchors>
                         <Anchor point="TOPLEFT" x="20" y="-40"/>
@@ -26,7 +26,7 @@
                     </Anchors>
                 </FontString>
 
-                <FontString name="$parentClickHint" inherits="GameFontNormalSmall" justifyH="CENTER">
+                <FontString name="$parentClickHint" parentKey="ClickHint" inherits="GameFontNormalSmall" justifyH="CENTER">
                     <Anchors>
                         <Anchor point="BOTTOM" x="0" y="10"/>
                     </Anchors>
@@ -36,7 +36,7 @@
         </Layers>
 
         <Frames>
-            <Button name="$parentCloseButton" inherits="UIPanelCloseButton">
+            <Button name="$parentCloseButton" parentKey="CloseButton" inherits="UIPanelCloseButton">
                 <Anchors>
                     <Anchor point="TOPRIGHT" x="-2" y="-2"/>
                 </Anchors>

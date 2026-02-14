@@ -2,6 +2,10 @@ local GH, ns = ...
 
 local L = ns.L
 
+local pairs = pairs
+local ipairs = ipairs
+local next = next
+
 local FilterBar = {}
 ns.FilterBar = FilterBar
 
@@ -9,6 +13,8 @@ local container = nil
 local searchBox = nil
 local categoryChecks = {}
 local clearButton = nil
+local dateButtons = {}
+local activeDatePreset = nil
 
 local currentFilters = {
     types = nil,
@@ -16,6 +22,8 @@ local currentFilters = {
     startDate = nil,
     endDate = nil,
     difficultyID = nil,
+    filterMonth = nil,
+    filterDay = nil,
 }
 
 function FilterBar:Init(parent)
@@ -26,7 +34,6 @@ function FilterBar:Init(parent)
     container:SetPoint("TOPRIGHT", 0, 0)
     container:SetHeight(36)
 
-    -- Search box
     searchBox = CreateFrame("EditBox", "GuildHistorianSearchBox", container, "SearchBoxTemplate")
     searchBox:SetSize(160, 22)
     searchBox:SetPoint("LEFT", 4, 0)
@@ -40,7 +47,6 @@ function FilterBar:Init(parent)
         self:ClearFocus()
     end)
 
-    -- Category filter checkboxes
     local xOffset = 180
     local importantTypes = {
         { type = "BOSS_KILL",    label = L["BOSS_KILL"] },
@@ -75,7 +81,6 @@ function FilterBar:Init(parent)
         xOffset = xOffset + label:GetStringWidth() + 36
     end
 
-    -- Clear filters button
     clearButton = CreateFrame("Button", nil, container, "UIPanelButtonTemplate")
     clearButton:SetSize(60, 22)
     clearButton:SetPoint("RIGHT", -4, 0)
@@ -83,6 +88,32 @@ function FilterBar:Init(parent)
     clearButton:SetScript("OnClick", function()
         FilterBar:ClearFilters()
     end)
+
+    local datePresets = {
+        { label = "All",  days = nil,  width = 32 },
+        { label = "7d",   days = 7,    width = 28 },
+        { label = "30d",  days = 30,   width = 32 },
+        { label = "90d",  days = 90,   width = 32 },
+    }
+
+    local prevDateBtn = clearButton
+    for i = #datePresets, 1, -1 do
+        local preset = datePresets[i]
+        local btn = CreateFrame("Button", nil, container, "UIPanelButtonTemplate")
+        btn:SetSize(preset.width, 22)
+        btn:SetPoint("RIGHT", prevDateBtn, "LEFT", -4, 0)
+        btn:SetText(preset.label)
+        btn.presetDays = preset.days
+
+        btn:SetScript("OnClick", function()
+            FilterBar:SetDatePreset(preset.days)
+        end)
+
+        dateButtons[i] = btn
+        prevDateBtn = btn
+    end
+
+    FilterBar:UpdateDateButtonHighlights()
 
     return container
 end
@@ -94,7 +125,6 @@ function FilterBar:UpdateTypeFilters()
     for eventType, check in pairs(categoryChecks) do
         if check:GetChecked() then
             types[eventType] = true
-            -- Also include related types
             if eventType == "BOSS_KILL" then
                 types["FIRST_KILL"] = true
             elseif eventType == "MEMBER_JOIN" then
@@ -109,17 +139,17 @@ function FilterBar:UpdateTypeFilters()
         end
     end
 
-    -- Include notes always
     types["PLAYER_NOTE"] = true
 
     if anyUnchecked then
         currentFilters.types = types
     else
-        currentFilters.types = nil  -- No filter = show all
+        currentFilters.types = nil
     end
 end
 
 function FilterBar:SetDatePreset(days)
+    activeDatePreset = days
     if not days then
         currentFilters.startDate = nil
         currentFilters.endDate = nil
@@ -127,39 +157,63 @@ function FilterBar:SetDatePreset(days)
         currentFilters.endDate = GetServerTime()
         currentFilters.startDate = currentFilters.endDate - (days * 86400)
     end
+    currentFilters.filterMonth = nil
+    currentFilters.filterDay = nil
+    self:UpdateDateButtonHighlights()
+    self:ApplyFilters()
+end
+
+function FilterBar:SetMonthDayFilter(month, day)
+    currentFilters.filterMonth = month
+    currentFilters.filterDay = day
+    if month then
+        activeDatePreset = nil
+        currentFilters.startDate = nil
+        currentFilters.endDate = nil
+        self:UpdateDateButtonHighlights()
+    end
     self:ApplyFilters()
 end
 
 function FilterBar:ClearFilters()
-    -- Reset search
     if searchBox then
         searchBox:SetText("")
     end
     currentFilters.search = nil
 
-    -- Reset checkboxes
     for _, check in pairs(categoryChecks) do
         check:SetChecked(true)
     end
     currentFilters.types = nil
 
-    -- Reset date range
     currentFilters.startDate = nil
     currentFilters.endDate = nil
-
-    -- Reset difficulty
     currentFilters.difficultyID = nil
+    currentFilters.filterMonth = nil
+    currentFilters.filterDay = nil
+    activeDatePreset = nil
+    self:UpdateDateButtonHighlights()
 
     self:ApplyFilters()
 end
 
 function FilterBar:GetFilters()
-    -- Return nil if no filters are active
     if not currentFilters.types and not currentFilters.search
-       and not currentFilters.startDate and not currentFilters.difficultyID then
+       and not currentFilters.startDate and not currentFilters.difficultyID
+       and not currentFilters.filterMonth then
         return nil
     end
     return currentFilters
+end
+
+function FilterBar:UpdateDateButtonHighlights()
+    for _, btn in ipairs(dateButtons) do
+        if btn.presetDays == activeDatePreset then
+            btn:GetFontString():SetTextColor(1, 0.84, 0)
+        else
+            btn:GetFontString():SetTextColor(1, 1, 1)
+        end
+    end
 end
 
 function FilterBar:ApplyFilters()

@@ -4,12 +4,13 @@ local Utils = ns.Utils
 local Database = ns.Database
 local addon = ns.addon
 
+local ipairs = ipairs
+local min = math.min
+
 local OnThisDay = addon:NewModule("OnThisDay", "AceEvent-3.0", "AceTimer-3.0")
 
 function OnThisDay:OnEnable()
     if not ns.addon.db.profile.display.showOnThisDay then return end
-
-    -- Delay the check until after login settles
     self:ScheduleTimer("CheckOnThisDay", ns.ON_THIS_DAY_DELAY)
 end
 
@@ -21,16 +22,14 @@ function OnThisDay:CheckOnThisDay()
     local today = Utils.TimestampToDate(GetServerTime())
     local charDB = ns.addon.db.char
 
-    -- Only show once per day per character
     if charDB.lastOnThisDayDate == today then return end
     charDB.lastOnThisDayDate = today
 
     local events = self:GetOnThisDayEvents()
     if #events == 0 then return end
 
-    -- Show popup with up to 3 events
     local displayEvents = {}
-    for i = 1, math.min(3, #events) do
+    for i = 1, min(3, #events) do
         displayEvents[i] = events[i]
     end
 
@@ -39,8 +38,6 @@ function OnThisDay:CheckOnThisDay()
     end
 end
 
---- Find events from this day in previous years
---- @return table
 function OnThisDay:GetOnThisDayEvents()
     local now = GetServerTime()
     local currentMonth, currentDay = Utils.TimestampToMonthDay(now)
@@ -62,7 +59,6 @@ function OnThisDay:GetOnThisDayEvents()
         end
     end
 
-    -- Sort by most recent year first
     table.sort(matches, function(a, b) return a.yearsAgo < b.yearsAgo end)
 
     return matches

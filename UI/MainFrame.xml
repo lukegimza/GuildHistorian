@@ -15,15 +15,13 @@
 
         <Layers>
             <Layer level="OVERLAY">
-                <!-- Title text -->
-                <FontString name="$parentTitle" inherits="GameFontNormalLarge" justifyH="LEFT">
+                <FontString name="$parentTitle" parentKey="Title" inherits="GameFontNormalLarge" justifyH="LEFT">
                     <Anchors>
                         <Anchor point="TOPLEFT" x="16" y="-12"/>
                     </Anchors>
                 </FontString>
 
-                <!-- Version text -->
-                <FontString name="$parentVersion" inherits="GameFontNormalSmall" justifyH="RIGHT">
+                <FontString name="$parentVersion" parentKey="Version" inherits="GameFontNormalSmall" justifyH="RIGHT">
                     <Anchors>
                         <Anchor point="TOPRIGHT" x="-40" y="-16"/>
                     </Anchors>
@@ -33,15 +31,13 @@
         </Layers>
 
         <Frames>
-            <!-- Close button -->
-            <Button name="$parentCloseButton" inherits="UIPanelCloseButton">
+            <Button name="$parentCloseButton" parentKey="CloseButton" inherits="UIPanelCloseButton">
                 <Anchors>
                     <Anchor point="TOPRIGHT" x="-4" y="-4"/>
                 </Anchors>
             </Button>
 
-            <!-- Resize grip -->
-            <Button name="$parentResizeButton" enableMouse="true">
+            <Button name="$parentResizeButton" parentKey="ResizeButton" enableMouse="true">
                 <Size x="16" y="16"/>
                 <Anchors>
                     <Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
@@ -59,8 +55,7 @@
                 </Scripts>
             </Button>
 
-            <!-- Tab container -->
-            <Frame name="$parentTabContainer">
+            <Frame name="$parentTabContainer" parentKey="TabContainer">
                 <Size x="0" y="30"/>
                 <Anchors>
                     <Anchor point="TOPLEFT" x="10" y="-36"/>
@@ -68,8 +63,7 @@
                 </Anchors>
             </Frame>
 
-            <!-- Content container -->
-            <Frame name="$parentContent">
+            <Frame name="$parentContent" parentKey="Content">
                 <Anchors>
                     <Anchor point="TOPLEFT" x="10" y="-70"/>
                     <Anchor point="BOTTOMRIGHT" x="-10" y="10"/>
