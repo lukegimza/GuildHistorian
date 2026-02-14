@@ -17,9 +17,12 @@ if not loadstring then
     loadstring = load
 end
 
--- WoW exposes os.date as a global `date`
+-- WoW exposes os.date and os.time as globals `date` and `time`
 if not date then
     date = os.date
+end
+if not time then
+    time = os.time
 end
 
 -- WoW global string helpers (these exist as global functions in WoW)
@@ -557,6 +560,15 @@ function GetAutoCompleteRealms() return {} end
 function GetRealZoneText() return "Orgrimmar" end
 
 function GetAchievementCriteriaInfo(achievementID, criteriaIndex) return nil end
+
+function GetCategoryAchievementID(categoryID, index)
+    for _, cat in ipairs(MockState.achievementCategories) do
+        if cat.id == categoryID then
+            return cat.achievementIDs and cat.achievementIDs[index] or nil
+        end
+    end
+    return nil
+end
 
 -------------------------------------------------------------------------------
 -- LibStub Mock

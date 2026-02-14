@@ -54,6 +54,7 @@ local loadOrder = {
     -- Core
     "Core/Constants.lua",
     "Core/Utils.lua",
+    "Core/DataModules.lua",
     "Core/Database.lua",
     "Core/Init.lua",
 

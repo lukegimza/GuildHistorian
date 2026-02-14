@@ -44,6 +44,9 @@ print("[Runner] Loading test suites...")
 dofile(scriptDir .. "test_utils.lua")
 print("[Runner]   Loaded: test_utils.lua")
 
+dofile(scriptDir .. "test_data_modules.lua")
+print("[Runner]   Loaded: test_data_modules.lua")
+
 dofile(scriptDir .. "test_database.lua")
 print("[Runner]   Loaded: test_database.lua")
 
