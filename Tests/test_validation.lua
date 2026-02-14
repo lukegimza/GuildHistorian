@@ -75,6 +75,89 @@ describe("Validation: TOC File", function()
             A.isTrue(mainXmlPos < mainLuaPos, "MainFrame.xml should load before MainFrame.lua")
         end
     end)
+
+    it("should list all required v2 files", function()
+        local requiredFiles = {
+            "Locales\\enUS.lua",
+            "Core\\Constants.lua",
+            "Core\\Utils.lua",
+            "Core\\DataModules.lua",
+            "Core\\Init.lua",
+            "UI\\MainFrame.xml",
+            "UI\\MainFrame.lua",
+            "UI\\DashboardCards.lua",
+            "UI\\Dashboard.lua",
+            "UI\\TimelineEntry.xml",
+            "UI\\TimelineEntry.lua",
+            "UI\\Timeline.lua",
+            "UI\\FilterBar.lua",
+            "UI\\OnThisDayPopup.xml",
+            "UI\\OnThisDayPopup.lua",
+            "UI\\SettingsPanel.lua",
+            "UI\\MinimapButton.lua",
+        }
+
+        for _, file in ipairs(requiredFiles) do
+            A.isTrue(tocContent:find(file, 1, true) ~= nil,
+                "TOC should list " .. file)
+        end
+    end)
+
+    it("should not reference old v1 files", function()
+        local oldFiles = {
+            "Database.lua",
+            "Modules\\",
+            "DetailPanel",
+            "ExportFrame",
+            "StatsPanel",
+            "GuildRoster",
+            "BossKills",
+            "LootTracker",
+            "MilestoneDetector",
+            "Notes.lua",
+        }
+
+        for _, old in ipairs(oldFiles) do
+            A.isTrue(tocContent:find(old, 1, true) == nil,
+                "TOC should NOT reference old v1 file: " .. old)
+        end
+    end)
+
+    it("should have DashboardCards.lua before Dashboard.lua", function()
+        local cardsPos = tocContent:find("DashboardCards%.lua")
+        local dashPos = tocContent:find("Dashboard%.lua")
+        A.isNotNil(cardsPos, "Should list DashboardCards.lua")
+        A.isNotNil(dashPos, "Should list Dashboard.lua")
+        A.isTrue(cardsPos < dashPos, "DashboardCards.lua should load before Dashboard.lua")
+    end)
+end)
+
+-------------------------------------------------------------------------------
+-- File Existence: All TOC-listed files should exist on disk
+-------------------------------------------------------------------------------
+describe("Validation: TOC File Existence", function()
+    it("should have all Lua files listed in TOC on disk", function()
+        local tocContent = readFile(ADDON_DIR .. "GuildHistorian.toc")
+        A.isNotNil(tocContent)
+
+        local missing = {}
+        for line in tocContent:gmatch("[^\n]+") do
+            -- Skip comments and metadata
+            if not line:match("^#") and not line:match("^%s*$") then
+                -- Normalize backslashes to forward slashes
+                local file = line:gsub("\\", "/"):gsub("^%s+", ""):gsub("%s+$", "")
+                if file ~= "" then
+                    if not fileExists(ADDON_DIR .. file) then
+                        missing[#missing + 1] = file
+                    end
+                end
+            end
+        end
+
+        if #missing > 0 then
+            error("Files listed in TOC but missing on disk:\n  " .. table.concat(missing, "\n  "))
+        end
+    end)
 end)
 
 -------------------------------------------------------------------------------
@@ -191,9 +274,6 @@ describe("Validation: Locale Completeness", function()
     end)
 
     it("should have no orphaned locale keys (defined but never used)", function()
-        -- v2 transition: many locale keys from deleted modules are now orphaned.
-        -- This is expected; the locale cleanup happens in Task 18.
-        -- For now we use a generous threshold.
         local sourceDirs = { "Core/", "UI/" }
         local allCode = ""
 
@@ -219,9 +299,8 @@ describe("Validation: Locale Completeness", function()
             end
         end
 
-        -- Generous threshold during v2 transition; many keys will be used by UI files
-        -- that haven't been rewritten yet (Tasks 10-18)
-        A.isTrue(#orphaned < 60, "Too many orphaned locale keys (" .. #orphaned .. "): " ..
+        -- Allow a small number of orphaned keys (some may be used dynamically)
+        A.isTrue(#orphaned < 10, "Too many orphaned locale keys (" .. #orphaned .. "): " ..
             table.concat(orphaned, ", "))
     end)
 end)
@@ -293,5 +372,23 @@ describe("Validation: SavedVariables", function()
             "TOC should reference GuildHistorianDB")
         A.isTrue(tocContent:find("GuildHistorianCharDB") ~= nil,
             "TOC should reference GuildHistorianCharDB")
+    end)
+end)
+
+-------------------------------------------------------------------------------
+-- No Old v1 Files
+-------------------------------------------------------------------------------
+describe("Validation: No Old v1 Files", function()
+    it("should not have old Database.lua in Core", function()
+        A.isFalse(fileExists(ADDON_DIR .. "Core/Database.lua"),
+            "Old Core/Database.lua should not exist")
+    end)
+
+    it("should not have old v1 UI files", function()
+        local oldUI = { "DetailPanel.lua", "ExportFrame.lua", "StatsPanel.lua" }
+        for _, file in ipairs(oldUI) do
+            A.isFalse(fileExists(ADDON_DIR .. "UI/" .. file),
+                "Old UI/" .. file .. " should not exist")
+        end
     end)
 end)

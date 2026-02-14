@@ -46,7 +46,23 @@ local function loadAddonFile(relativePath)
     return true
 end
 
--- Load files in the same order as GuildHistorian.toc (minus XML and Libs)
+-- Load files in the same order as GuildHistorian.toc (minus XML, Libs, and UI files)
+-- UI files require WoW's frame system and cannot be loaded in test environment.
+-- The load order matches the TOC:
+--   Locales/enUS.lua
+--   Core/Constants.lua
+--   Core/Utils.lua
+--   Core/DataModules.lua
+--   Core/Init.lua
+--   UI/MainFrame.lua       (requires XML frames - skipped in tests)
+--   UI/DashboardCards.lua   (requires XML frames - skipped in tests)
+--   UI/Dashboard.lua        (requires XML frames - skipped in tests)
+--   UI/TimelineEntry.lua    (requires XML frames - skipped in tests)
+--   UI/Timeline.lua         (requires XML frames - skipped in tests)
+--   UI/FilterBar.lua        (requires XML frames - skipped in tests)
+--   UI/OnThisDayPopup.lua   (requires XML frames - skipped in tests)
+--   UI/SettingsPanel.lua    (requires XML frames - skipped in tests)
+--   UI/MinimapButton.lua    (requires XML frames - skipped in tests)
 local loadOrder = {
     -- Localization
     "Locales/enUS.lua",

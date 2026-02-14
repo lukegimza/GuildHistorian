@@ -1,18 +1,31 @@
 # Guild Historian
 
-A World of Warcraft addon that passively records your guild's milestones and presents them in a browsable in-game timeline. Every boss kill, roster change, achievement, and loot drop is captured automatically so your guild's story is never lost.
+A real-time guild dashboard and achievement browser for World of Warcraft. See your guild's pulse, recent activity, and full achievement history at a glance — from the moment you install it.
 
 ## Features
 
-- **Boss Kill Tracking** — Records boss kills with difficulty, group composition, and first-kill detection
-- **Roster Monitoring** — Tracks members joining, leaving, rank changes, and max level achievements
-- **Achievement Logging** — Captures guild and personal achievements
-- **Loot Tracking** — Records notable loot drops received by guild members
-- **Milestone Detection** — Celebrates guild milestones like member count thresholds, boss kill counts, and member anniversaries
-- **"On This Day" Popup** — Shows you what happened on this day in your guild's history
-- **Player Notes** — Add personal notes to your guild's timeline
-- **Export** — Export your guild history as plain text for external use
-- **Statistics** — View your guild's history at a glance with event breakdowns, most active members, and more
+- **Guild Dashboard** — A card-based home screen showing your guild's vital signs
+  - **Guild Pulse** — Total members, online count, achievement points, and completion progress
+  - **On This Day** — Guild achievements earned on this calendar date in previous years
+  - **Recent Activity** — Live feed of boss kills, loot drops, and achievements from the guild news
+  - **Top Achievers** — Your guild's highest achievement point earners
+  - **Activity Snapshot** — Quick summary of recent activity by type
+  - **Class Composition** — Online max-level members grouped by class
+  - **Achievement Progress** — Category-by-category progress bars for guild achievements
+- **Achievement Timeline** — Full chronological history of guild achievements going back to guild creation
+- **Guild News Feed** — Recent boss kills, loot, and achievements merged into a searchable timeline
+- **Roster Activity** — Recent joins, leaves, promotions, and demotions
+- **"On This Day" Popup** — Login notification showing what your guild accomplished on this date in past years
+- **Filters & Search** — Filter timeline by type, date range, or keyword
+
+## How It Works
+
+Guild Historian reads directly from WoW's server-side data. No local event tracking is needed — the addon works identically on any install, any machine, from the moment it loads.
+
+- **Guild achievements** provide a complete historical record with real completion dates
+- **Guild news feed** provides recent weeks of boss kills, loot, and achievements
+- **Guild roster** provides current member data and achievement points
+- **Guild event log** provides recent roster changes (joins, leaves, promotions)
 
 ## Installation
 
@@ -26,37 +39,29 @@ A World of Warcraft addon that passively records your guild's milestones and pre
 
 | Command | Description |
 |---------|-------------|
-| `/gh` or `/gh toggle` | Toggle the main timeline window |
-| `/gh note <text>` | Add a note to your guild's history |
-| `/gh search <text>` | Search events by keyword |
-| `/gh stats` | Show quick statistics in chat |
-| `/gh export` | Open the export window |
+| `/gh` or `/gh toggle` | Toggle the main window |
 | `/gh config` | Open the settings panel |
 | `/gh debug` | Toggle debug mode |
-| `/gh purge` | Purge all data for the current guild |
 
 ### Minimap Button
 
-- **Left-click** — Toggle the timeline window
+- **Left-click** — Toggle the main window
 - **Right-click** — Open settings
 
-### Timeline Window
+### Main Window
 
-The main window has three tabs:
+The window has three tabs:
 
-1. **Timeline** — Browse all recorded events with filters for event type, date range, and text search
-2. **Statistics** — View aggregate stats: total events, first kills, member tracking, and activity breakdown
-3. **Settings** — Configure tracking options, display preferences, and data limits
+1. **Dashboard** — Card-based overview of your guild's current state
+2. **Timeline** — Chronological list of achievements, news, and roster changes with filters
+3. **Settings** — Toggle minimap icon, On This Day popup, and individual dashboard cards
 
 ## Configuration
 
 All settings are accessible via `/gh config` or the Settings tab:
 
-- **Tracking toggles** for boss kills, roster changes, achievements, and loot
-- **Minimum loot quality** threshold (Uncommon through Legendary)
-- **Minimap icon** visibility
-- **"On This Day" popup** toggle
-- **Maximum events** stored (1,000 to 10,000)
+- **Display:** Minimap icon visibility, On This Day popup toggle
+- **Dashboard Cards:** Show/hide individual cards (Guild Pulse, On This Day, Recent Activity, Top Achievers, Activity Snapshot, Class Composition, Achievement Progress)
 
 ## Localization
 
@@ -67,12 +72,10 @@ Guild Historian includes translations for:
 - Spanish (partial)
 - Brazilian Portuguese (partial)
 
-Contributions for additional translations are welcome!
-
 ## Requirements
 
-- World of Warcraft Retail
-- Must be in a guild to track events
+- World of Warcraft Retail (The War Within)
+- Must be in a guild
 
 ## Libraries
 
