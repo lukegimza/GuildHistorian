@@ -92,6 +92,12 @@ local MockState = {
     raidClassColors = {},
     messages = {},
     events = {},
+    guildNews = {},
+    guildAchievements = {},
+    guildEventLog = {},
+    numGuildNews = 0,
+    numGuildEvents = 0,
+    achievementCategories = {},
 }
 
 -- Export MockState so tests can control it
@@ -117,6 +123,12 @@ function MockState:Reset()
     self.items = {}
     self.messages = {}
     self.events = {}
+    self.guildNews = {}
+    self.guildAchievements = {}
+    self.guildEventLog = {}
+    self.numGuildNews = 0
+    self.numGuildEvents = 0
+    self.achievementCategories = {}
 end
 
 -------------------------------------------------------------------------------
@@ -238,21 +250,84 @@ function GetNumGuildMembers()
     return #MockState.guildMembers
 end
 
+function GetNumGuildNews()
+    return MockState.numGuildNews
+end
+
+function GetMaxPlayerLevel()
+    return MockState.maxPlayerLevel
+end
+
+function QueryGuildEventLog() end
+
+function GetNumGuildEvents()
+    return MockState.numGuildEvents
+end
+
+function GetGuildEventInfo(index)
+    local entry = MockState.guildEventLog[index]
+    if not entry then return nil end
+    return entry.eventType, entry.playerName1, entry.playerName2, entry.rankIndex, entry.timestamp
+end
+
 function GetGuildRosterInfo(index)
     local member = MockState.guildMembers[index]
     if not member then return nil end
-    return member.name, member.rank or "Member", member.rankIndex or 1,
-        member.level or 80, member.classDisplayName or "Warrior",
-        "Orgrimmar", "", "", true, "Online", member.class or "WARRIOR"
+    return member.name,
+        member.rank or "Member",
+        member.rankIndex or 1,
+        member.level or 80,
+        member.classDisplayName or "Warrior",
+        member.zone or "Orgrimmar",
+        member.publicNote or "",
+        member.officerNote or "",
+        member.online or false,
+        member.status or 0,
+        member.class or "WARRIOR",
+        member.achievementPoints or 0,
+        member.achievementRank or 0,
+        member.isMobile or false,
+        member.isSoREligible or false,
+        member.standingID or 0
 end
 
 function GetAchievementInfo(id)
-    local ach = MockState.achievements[id]
+    local ach = MockState.guildAchievements[id] or MockState.achievements[id]
     if ach then
-        return id, ach.name, ach.points or 10, true, false, false, false,
-            ach.description or "", ach.flags or 0
+        return id, ach.name or "Achievement", ach.points or 10,
+            ach.completed or false,
+            ach.month, ach.day, ach.year,
+            ach.description or "", ach.flags or 0,
+            ach.icon or 0, "", ach.isGuild or false,
+            ach.wasEarnedByMe or false, ach.earnedBy or "", false
     end
-    return id, "Achievement " .. tostring(id), 10, true, false, false, false, "Description", 0
+    return id, "Achievement " .. tostring(id), 10, false, nil, nil, nil, "Description", 0, 0, "", false, false, "", false
+end
+
+function GetCategoryList()
+    local ids = {}
+    for _, cat in ipairs(MockState.achievementCategories) do
+        ids[#ids + 1] = cat.id
+    end
+    return ids
+end
+
+function GetCategoryInfo(categoryID)
+    for _, cat in ipairs(MockState.achievementCategories) do
+        if cat.id == categoryID then
+            return cat.name or "Category", cat.parentID, 0
+        end
+    end
+    return "Unknown", nil, 0
+end
+
+function GetCategoryNumAchievements(categoryID, includeAll)
+    for _, cat in ipairs(MockState.achievementCategories) do
+        if cat.id == categoryID then
+            return cat.numAchievements or 0, cat.numAchievements or 0, 0
+        end
+    end
+    return 0, 0, 0
 end
 
 function GetItemInfo(link)
@@ -299,6 +374,12 @@ WOW_PROJECT_ID = 1
 -------------------------------------------------------------------------------
 C_GuildInfo = {
     GuildRoster = function() end,
+    QueryGuildNews = function() end,
+    GetGuildNewsInfo = function(index)
+        local entry = MockState.guildNews[index]
+        if not entry then return nil end
+        return entry
+    end,
 }
 
 C_AddOns = {
@@ -322,6 +403,10 @@ C_Timer = {
 
 Settings = {
     OpenToCategory = function() end,
+    RegisterCanvasLayoutCategory = function(canvas, name)
+        return { ID = name }
+    end,
+    RegisterAddOnCategory = function(category) end,
 }
 
 -------------------------------------------------------------------------------
@@ -471,7 +556,7 @@ function GetAutoCompleteRealms() return {} end
 
 function GetRealZoneText() return "Orgrimmar" end
 
-function GetAchievementCriteriaInfo() return nil end
+function GetAchievementCriteriaInfo(achievementID, criteriaIndex) return nil end
 
 -------------------------------------------------------------------------------
 -- LibStub Mock
