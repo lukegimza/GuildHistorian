@@ -230,9 +230,9 @@ describe("NewsReader:Read", function()
         ns.NewsReader:Invalidate()
         MockState.numGuildNews = 3
         MockState.guildNews = {
-            [1] = { newsType = 0, who = "Player1", what = "Stay Classy", dataID = 5362, month = 1, day = 10, year = 24, membersPresent = 5 },
-            [2] = { newsType = 2, who = "Player2", what = "Ragnaros", dataID = 100, month = 1, day = 11, year = 24, membersPresent = 20 },
-            [3] = { newsType = 3, who = "Player3", what = "Thunderfury", dataID = 200, month = 1, day = 12, year = 24, membersPresent = 1 },
+            [1] = { newsType = 0, whoText = "Player1", whatText = "Stay Classy", newsDataID = 5362, month = 1, day = 10, year = 24, guildMembersPresent = 5 },
+            [2] = { newsType = 2, whoText = "Player2", whatText = "Ragnaros", newsDataID = 100, month = 1, day = 11, year = 24, guildMembersPresent = 20 },
+            [3] = { newsType = 3, whoText = "Player3", whatText = "Thunderfury", newsDataID = 200, month = 1, day = 12, year = 24, guildMembersPresent = 1 },
         }
     end)
 
@@ -254,6 +254,14 @@ describe("NewsReader:Read", function()
         A.equals(5, entry.membersPresent)
     end)
 
+    it("should map API field names correctly", function()
+        local results = ns.NewsReader:Read()
+        local entry = results[1]
+        -- Production code maps whoText->who, whatText->what, newsDataID->dataID, guildMembersPresent->membersPresent
+        A.equals("Player1", entry.who)
+        A.equals("Stay Classy", entry.what)
+    end)
+
     it("should include typeInfo from NEWS_TYPE_INFO", function()
         local results = ns.NewsReader:Read()
         A.isNotNil(results[1].typeInfo)
@@ -262,7 +270,7 @@ describe("NewsReader:Read", function()
 
     it("should cache results on second call", function()
         local r1 = ns.NewsReader:Read()
-        MockState.guildNews[1].who = "Changed"
+        MockState.guildNews[1].whoText = "Changed"
         local r2 = ns.NewsReader:Read()
         A.equals(r1, r2, "Should return cached table")
         A.equals("Player1", r2[1].who)
@@ -270,7 +278,7 @@ describe("NewsReader:Read", function()
 
     it("should re-read on forceRefresh", function()
         ns.NewsReader:Read()
-        MockState.guildNews[1].who = "Changed"
+        MockState.guildNews[1].whoText = "Changed"
         local results = ns.NewsReader:Read(true)
         A.equals("Changed", results[1].who)
     end)
@@ -288,10 +296,10 @@ describe("NewsReader:GetSummary", function()
         ns.NewsReader:Invalidate()
         MockState.numGuildNews = 4
         MockState.guildNews = {
-            [1] = { newsType = 0, who = "P1", month = 1, day = 1, year = 24 },
-            [2] = { newsType = 0, who = "P2", month = 1, day = 2, year = 24 },
-            [3] = { newsType = 2, who = "P3", month = 1, day = 3, year = 24 },
-            [4] = { newsType = 3, who = "P4", month = 1, day = 4, year = 24 },
+            [1] = { newsType = 0, whoText = "P1", month = 1, day = 1, year = 24 },
+            [2] = { newsType = 0, whoText = "P2", month = 1, day = 2, year = 24 },
+            [3] = { newsType = 2, whoText = "P3", month = 1, day = 3, year = 24 },
+            [4] = { newsType = 3, whoText = "P4", month = 1, day = 4, year = 24 },
         }
     end)
 

@@ -195,7 +195,7 @@ ns.NewsReader = NewsReader
 local newsCache = nil
 
 --- Read the guild news feed and return formatted entries.
--- Queries C_GuildInfo.QueryGuildNews and caches the result until invalidated.
+-- Calls QueryGuildNews() to request data, then reads via C_GuildInfo.GetGuildNewsInfo.
 ---@param forceRefresh boolean|nil When true, discard the cache and re-query
 ---@return table[] entries Array of {newsType, who, what, dataID, timestamp, membersPresent, typeInfo}
 function NewsReader:Read(forceRefresh)
@@ -208,7 +208,7 @@ function NewsReader:Read(forceRefresh)
         return newsCache
     end
 
-    C_GuildInfo.QueryGuildNews()
+    QueryGuildNews()
 
     local results = {}
     local numNews = GetNumGuildNews()
@@ -227,11 +227,11 @@ function NewsReader:Read(forceRefresh)
 
             tinsert(results, {
                 newsType = entry.newsType,
-                who = entry.who,
-                what = entry.what,
-                dataID = entry.dataID,
+                who = entry.whoText or "",
+                what = entry.whatText or "",
+                dataID = entry.newsDataID,
                 timestamp = timestamp,
-                membersPresent = entry.membersPresent,
+                membersPresent = entry.guildMembersPresent or 0,
                 typeInfo = typeInfo,
             })
         end

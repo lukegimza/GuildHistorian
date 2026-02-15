@@ -261,6 +261,7 @@ function GetMaxPlayerLevel()
     return MockState.maxPlayerLevel
 end
 
+function QueryGuildNews() end
 function QueryGuildEventLog() end
 
 function GetNumGuildEvents()
@@ -377,7 +378,6 @@ WOW_PROJECT_ID = 1
 -------------------------------------------------------------------------------
 C_GuildInfo = {
     GuildRoster = function() end,
-    QueryGuildNews = function() end,
     GetGuildNewsInfo = function(index)
         local entry = MockState.guildNews[index]
         if not entry then return nil end
