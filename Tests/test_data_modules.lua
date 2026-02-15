@@ -82,6 +82,15 @@ describe("AchievementScanner:Scan", function()
         local results = ns.AchievementScanner:Scan()
         A.arrayLength(0, results)
     end)
+
+    it("should exclude achievements with year=0 (invalid date)", function()
+        MockState.guildAchievements[5362].year = 0
+        MockState.guildAchievements[5362].month = 0
+        MockState.guildAchievements[5362].day = 0
+        local results = ns.AchievementScanner:Scan(true)
+        A.arrayLength(1, results, "Should only include the achievement with valid date")
+        A.equals("Guild Level 5", results[1].name)
+    end)
 end)
 
 describe("AchievementScanner:GetStats", function()
@@ -228,18 +237,27 @@ describe("NewsReader:Read", function()
     beforeEach(function()
         MockState:Reset()
         ns.NewsReader:Invalidate()
-        MockState.numGuildNews = 3
+        MockState.numGuildNews = 5
         MockState.guildNews = {
-            [1] = { newsType = 0, whoText = "Player1", whatText = "Stay Classy", newsDataID = 5362, year = 0, month = 0, day = 1, guildMembersPresent = 5 },
-            [2] = { newsType = 2, whoText = "Player2", whatText = "Ragnaros", newsDataID = 100, year = 0, month = 0, day = 2, guildMembersPresent = 20 },
-            [3] = { newsType = 3, whoText = "Player3", whatText = "Thunderfury", newsDataID = 200, year = 0, month = 0, day = 3, guildMembersPresent = 1 },
+            [1] = { isHeader = true, year = 2026, month = 2, day = 15 },
+            [2] = { newsType = 0, whoText = "Player1", whatText = "Stay Classy", newsDataID = 5362, year = 0, month = 0, day = 1, guildMembersPresent = 5 },
+            [3] = { newsType = 2, whoText = "Player2", whatText = "Ragnaros", newsDataID = 100, year = 0, month = 0, day = 2, guildMembersPresent = 20 },
+            [4] = { isHeader = true, year = 2026, month = 2, day = 14 },
+            [5] = { newsType = 3, whoText = "Player3", whatText = "Thunderfury", newsDataID = 200, year = 0, month = 0, day = 3, guildMembersPresent = 1 },
         }
     end)
 
-    it("should return all news entries", function()
+    it("should return only non-header news entries", function()
         local results = ns.NewsReader:Read()
         A.isTable(results)
         A.arrayLength(3, results)
+    end)
+
+    it("should skip isHeader entries", function()
+        local results = ns.NewsReader:Read()
+        for _, entry in ipairs(results) do
+            A.isNotNil(entry.newsType, "Every entry should have a newsType (not a header)")
+        end
     end)
 
     it("should include news entry fields", function()
@@ -271,7 +289,7 @@ describe("NewsReader:Read", function()
 
     it("should cache results on second call", function()
         local r1 = ns.NewsReader:Read()
-        MockState.guildNews[1].whoText = "Changed"
+        MockState.guildNews[2].whoText = "Changed"
         local r2 = ns.NewsReader:Read()
         A.equals(r1, r2, "Should return cached table")
         A.equals("Player1", r2[1].who)
@@ -279,7 +297,7 @@ describe("NewsReader:Read", function()
 
     it("should re-read on forceRefresh", function()
         ns.NewsReader:Read()
-        MockState.guildNews[1].whoText = "Changed"
+        MockState.guildNews[2].whoText = "Changed"
         local results = ns.NewsReader:Read(true)
         A.equals("Changed", results[1].who)
     end)
@@ -295,12 +313,13 @@ describe("NewsReader:GetSummary", function()
     beforeEach(function()
         MockState:Reset()
         ns.NewsReader:Invalidate()
-        MockState.numGuildNews = 4
+        MockState.numGuildNews = 5
         MockState.guildNews = {
-            [1] = { newsType = 0, whoText = "P1", year = 0, month = 0, day = 1 },
-            [2] = { newsType = 0, whoText = "P2", year = 0, month = 0, day = 2 },
-            [3] = { newsType = 2, whoText = "P3", year = 0, month = 0, day = 3 },
-            [4] = { newsType = 3, whoText = "P4", year = 0, month = 0, day = 4 },
+            [1] = { isHeader = true, year = 2026, month = 2, day = 15 },
+            [2] = { newsType = 0, whoText = "P1", year = 0, month = 0, day = 1 },
+            [3] = { newsType = 0, whoText = "P2", year = 0, month = 0, day = 2 },
+            [4] = { newsType = 2, whoText = "P3", year = 0, month = 0, day = 3 },
+            [5] = { newsType = 3, whoText = "P4", year = 0, month = 0, day = 4 },
         }
     end)
 

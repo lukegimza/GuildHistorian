@@ -64,18 +64,20 @@ function AchievementScanner:Scan(forceRefresh)
                 if completed then
                     earnedCount = earnedCount + 1
                     earnedPoints = earnedPoints + (points or 0)
-                    local timestamp = Utils.DateToTimestamp(month, day, year)
-                    tinsert(results, {
-                        id = id,
-                        name = name,
-                        description = description,
-                        points = points,
-                        icon = icon,
-                        timestamp = timestamp,
-                        month = month,
-                        day = day,
-                        year = year,
-                    })
+                    if year and year > 0 and month and month > 0 and day and day > 0 then
+                        local timestamp = Utils.DateToTimestamp(month, day, year)
+                        tinsert(results, {
+                            id = id,
+                            name = name,
+                            description = description,
+                            points = points,
+                            icon = icon,
+                            timestamp = timestamp,
+                            month = month,
+                            day = day,
+                            year = year,
+                        })
+                    end
                 end
             end
         end
@@ -216,7 +218,7 @@ function NewsReader:Read(forceRefresh)
     local numNews = GetNumGuildNews and GetNumGuildNews() or 0
     for i = 1, numNews do
         local entry = C_GuildInfo.GetGuildNewsInfo(i)
-        if entry then
+        if entry and not entry.isHeader then
             local secondsAgo = (entry.year or 0) * 31536000
                              + (entry.month or 0) * 2592000
                              + (entry.day or 0) * 86400

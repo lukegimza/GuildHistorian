@@ -154,7 +154,7 @@ function Timeline:Init()
     noEventsText:Hide()
 
     scrollFrame = CreateFrame("ScrollFrame", "GuildHistorianScrollFrame", container, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 0, filterBar and -40 or 0)
+    scrollFrame:SetPoint("TOPLEFT", 0, filterBar and -52 or 0)
     scrollFrame:SetPoint("BOTTOMRIGHT", -26, 0)
 
     scrollChild = CreateFrame("Frame", "GuildHistorianScrollChild", scrollFrame)
