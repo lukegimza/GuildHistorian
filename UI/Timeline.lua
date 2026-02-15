@@ -1,6 +1,7 @@
 --- Timeline tab showing a merged, filterable event feed.
 -- Combines achievements, guild news, and event log entries into a single
 -- chronological list grouped by date. Uses frame pooling for efficient scrolling.
+-- Hell's own scrollbar. Infinite damnation, sorted by date.
 -- @module Timeline
 
 local GH, ns = ...
@@ -65,6 +66,7 @@ local function AcquireHeader()
 end
 
 --- Return all active entry and header frames to their respective pools.
+-- Back to hell with you.
 local function ReleaseAll()
     for i = #activeEntries, 1, -1 do
         local f = activeEntries[i]

@@ -2,6 +2,7 @@
 -- Provides text search, event type toggles (achievement/news/roster),
 -- and quick date-range buttons (All, 7d, 30d, 90d). Changes trigger
 -- a Timeline:Refresh via FilterBar:ApplyFilters.
+-- Even Satan lets you sort by date range.
 -- @module FilterBar
 
 local GH, ns = ...

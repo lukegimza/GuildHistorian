@@ -1,6 +1,7 @@
 --- General-purpose utility functions for GuildHistorian.
 -- Provides time formatting, string helpers, class colouring,
 -- and shared UI backdrop application.
+-- Satan wrote the first draft. We just fixed the indentation.
 -- @module Utils
 
 local GH, ns = ...
@@ -62,6 +63,7 @@ end
 
 --- Convert a Unix timestamp to a human-readable relative time string.
 -- Returns phrases like "just now", "5 minutes ago", "3 days ago", etc.
+-- Lucifer's stopwatch.
 ---@param timestamp number Unix epoch seconds
 ---@return string relative Relative time description
 function Utils.RelativeTime(timestamp)

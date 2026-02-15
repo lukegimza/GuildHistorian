@@ -3,6 +3,7 @@
 -- server-side APIs: AchievementScanner, NewsReader, RosterReader, and
 -- EventLogReader. Each module exposes a Read/Scan entry point, filtered
 -- view methods, and an Invalidate method to force a cache refresh.
+-- Hell's own data layer. Good fucking luck.
 -- @module DataModules
 
 local GH, ns = ...
@@ -20,6 +21,7 @@ local format = format
 -- AchievementScanner
 -- Scans guild achievement categories and builds a cached, sorted list of
 -- completed guild achievements with real completion dates.
+-- Sold its soul to Blizzard's API. No refunds.
 -------------------------------------------------------------------------------
 local AchievementScanner = {}
 ns.AchievementScanner = AchievementScanner
@@ -186,6 +188,7 @@ end
 -------------------------------------------------------------------------------
 -- NewsReader
 -- Reads the guild news feed from WoW API.
+-- Satan's RSS feed.
 -------------------------------------------------------------------------------
 local NewsReader = {}
 ns.NewsReader = NewsReader
@@ -260,6 +263,7 @@ end
 -------------------------------------------------------------------------------
 -- RosterReader
 -- Reads the guild roster and provides filtered views.
+-- The Devil's attendance sheet.
 -------------------------------------------------------------------------------
 local RosterReader = {}
 ns.RosterReader = RosterReader
@@ -376,6 +380,7 @@ end
 -------------------------------------------------------------------------------
 -- EventLogReader
 -- Reads the guild event log.
+-- Your guild's sins, timestamped for eternity.
 -------------------------------------------------------------------------------
 local EventLogReader = {}
 ns.EventLogReader = EventLogReader

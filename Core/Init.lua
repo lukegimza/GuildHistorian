@@ -1,6 +1,7 @@
 --- Addon initialisation and lifecycle management.
 -- Creates the AceAddon instance, registers saved variables, slash commands,
 -- WoW events, and delegates to sub-modules on startup.
+-- The summoning circle. 666 lines of startup bullshit.
 -- @module Init
 
 local GH, ns = ...
@@ -25,7 +26,7 @@ end
 
 --- Ace3 lifecycle hook: runs when the addon is enabled (login / reload).
 -- Requests initial data from the server, registers events, and schedules
--- the On This Day popup check.
+-- the On This Day popup check. The demon awakens.
 function addon:OnEnable()
     if not IsInGuild() then
         self:DebugPrint(L["NOT_IN_GUILD"])

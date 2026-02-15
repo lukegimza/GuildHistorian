@@ -1,6 +1,7 @@
 --- Minimap button using LibDataBroker and LibDBIcon.
 -- Left-click toggles the main frame; right-click opens Blizzard Settings.
 -- Tooltip displays the addon version and current guild member counts.
+-- The all-seeing eye on your minimap. It judges you.
 -- @module MinimapButton
 
 local GH, ns = ...

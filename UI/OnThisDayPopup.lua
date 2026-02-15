@@ -2,6 +2,7 @@
 -- Renders a draggable notification frame from OnThisDayPopup.xml,
 -- auto-dismisses after a configurable timeout, and navigates to
 -- the Timeline tab on click.
+-- Your past won't leave you alone. Neither will this popup.
 -- @module OnThisDayPopup
 
 local GH, ns = ...

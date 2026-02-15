@@ -2,6 +2,7 @@
 -- Hosts the seven dashboard cards (Guild Pulse, On This Day, Recent Activity,
 -- Top Achievers, Activity Snapshot, Class Composition, Achievement Progress)
 -- arranged in a responsive grid inside a scroll frame.
+-- Seven cards. Seven deadly sins. Not a coincidence.
 -- @module Dashboard
 
 local GH, ns = ...
@@ -142,6 +143,7 @@ end
 -- Called when card visibility settings change or when data modules are refreshed.
 -- Reuses the same scrollChild by hiding and releasing old card frames to
 -- prevent frame object accumulation across repeated refreshes.
+-- Frames don't die. They go to hell. Then we reuse them.
 function Dashboard:Refresh()
     if not container then return end
     for i = #cardFrames, 1, -1 do

@@ -1,6 +1,7 @@
 --- GuildHistorian constants and default configuration.
 -- Defines news types, event log types, difficulty mappings, database defaults,
 -- and shared UI backdrop settings used across the addon.
+-- If you're reading this source code, congratulations: you are now cursed.
 -- @module Constants
 
 local GH, ns = ...
@@ -60,5 +61,5 @@ ns.SHARED_BACKDROP = {
     insets = { left = 4, right = 4, top = 4, bottom = 4 },
 }
 
-ns.SHARED_BACKDROP_COLOR = { 0.05, 0.05, 0.1, 0.92 }
+ns.SHARED_BACKDROP_COLOR = { 0.05, 0.05, 0.1, 0.92 }  -- the colour of Satan's desktop wallpaper
 ns.SHARED_BACKDROP_BORDER_COLOR = { 0.78, 0.65, 0.35, 1 }

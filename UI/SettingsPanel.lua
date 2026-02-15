@@ -1,6 +1,7 @@
 --- Settings panel for both the Blizzard Settings canvas and the inline tab.
 -- Provides checkboxes for minimap visibility, On This Day popup, and
 -- individual dashboard card toggles. Changes take effect immediately.
+-- Configure your descent into madness. Checkboxes included.
 -- @module SettingsPanel
 
 local GH, ns = ...

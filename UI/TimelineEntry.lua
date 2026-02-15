@@ -1,6 +1,7 @@
 --- Timeline entry row renderer.
 -- Handles lazy creation of sub-elements (icon, title, subtitle, timestamp)
 -- on pooled Button frames and populates them from a normalised event record.
+-- Tombstones for your guild's achievements. R.I.P.
 -- @module TimelineEntry
 
 local GH, ns = ...

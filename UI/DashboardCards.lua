@@ -1,6 +1,7 @@
 --- Dashboard card factory methods.
 -- Each Create* method returns a self-sizing BackdropTemplate frame populated
 -- with data from the relevant data module. Cards are consumed by Dashboard:BuildCards.
+-- Spawning UI abominations since 2024. Hail Satan.
 -- @module DashboardCards
 
 local GH, ns = ...

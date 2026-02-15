@@ -1,6 +1,7 @@
 --- Main application window with tabbed navigation.
 -- Manages the top-level frame created in MainFrame.xml, provides tab
 -- switching between Dashboard, Timeline, and Settings panels.
+-- The throne room. Kneel before the main frame, mortals.
 -- @module MainFrame
 
 local GH, ns = ...
