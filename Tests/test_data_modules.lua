@@ -234,16 +234,19 @@ end)
 -------------------------------------------------------------------------------
 
 describe("NewsReader:Read", function()
+    -- MockState.serverTime = 1700000000 = Nov 14 2023 ~21:13 UTC
+    -- Use 0-indexed absolute dates matching WoW's GuildNewsInfo format:
+    -- year = offset from 2000, month = 0-11, day = 0-30
     beforeEach(function()
         MockState:Reset()
         ns.NewsReader:Invalidate()
         MockState.numGuildNews = 5
         MockState.guildNews = {
-            [1] = { isHeader = true, year = 2026, month = 2, day = 15 },
-            [2] = { newsType = 0, whoText = "Player1", whatText = "Stay Classy", newsDataID = 5362, year = 0, month = 0, day = 1, guildMembersPresent = 5 },
-            [3] = { newsType = 2, whoText = "Player2", whatText = "Ragnaros", newsDataID = 100, year = 0, month = 0, day = 2, guildMembersPresent = 20 },
-            [4] = { isHeader = true, year = 2026, month = 2, day = 14 },
-            [5] = { newsType = 3, whoText = "Player3", whatText = "Thunderfury", newsDataID = 200, year = 0, month = 0, day = 3, guildMembersPresent = 1 },
+            [1] = { isHeader = true, year = 23, month = 10, day = 13 },
+            [2] = { newsType = 0, whoText = "Player1", whatText = "Stay Classy", newsDataID = 5362, year = 23, month = 10, day = 12, guildMembersPresent = 5 },
+            [3] = { newsType = 2, whoText = "Player2", whatText = "Ragnaros", newsDataID = 100, year = 23, month = 10, day = 11, guildMembersPresent = 20 },
+            [4] = { isHeader = true, year = 23, month = 10, day = 12 },
+            [5] = { newsType = 3, whoText = "Player3", whatText = "Thunderfury", newsDataID = 200, year = 23, month = 10, day = 10, guildMembersPresent = 1 },
         }
     end)
 
@@ -268,15 +271,15 @@ describe("NewsReader:Read", function()
         A.equals("Stay Classy", entry.what)
         A.equals(5362, entry.dataID)
         A.isNumber(entry.timestamp)
-        -- News was 1 day ago, so timestamp = serverTime - 86400
-        A.equals(MockState.serverTime - 86400, entry.timestamp)
+        -- year=23, month=10, day=12 → Nov 13, 2023 00:00:00 UTC
+        local expected = os.time({ year = 2023, month = 11, day = 13, hour = 0, min = 0, sec = 0 })
+        A.equals(expected, entry.timestamp)
         A.equals(5, entry.membersPresent)
     end)
 
     it("should map API field names correctly", function()
         local results = ns.NewsReader:Read()
         local entry = results[1]
-        -- Production code maps whoText->who, whatText->what, newsDataID->dataID, guildMembersPresent->membersPresent
         A.equals("Player1", entry.who)
         A.equals("Stay Classy", entry.what)
     end)
@@ -315,11 +318,11 @@ describe("NewsReader:GetSummary", function()
         ns.NewsReader:Invalidate()
         MockState.numGuildNews = 5
         MockState.guildNews = {
-            [1] = { isHeader = true, year = 2026, month = 2, day = 15 },
-            [2] = { newsType = 0, whoText = "P1", year = 0, month = 0, day = 1 },
-            [3] = { newsType = 0, whoText = "P2", year = 0, month = 0, day = 2 },
-            [4] = { newsType = 2, whoText = "P3", year = 0, month = 0, day = 3 },
-            [5] = { newsType = 3, whoText = "P4", year = 0, month = 0, day = 4 },
+            [1] = { isHeader = true, year = 23, month = 10, day = 13 },
+            [2] = { newsType = 0, whoText = "P1", year = 23, month = 10, day = 12 },
+            [3] = { newsType = 0, whoText = "P2", year = 23, month = 10, day = 11 },
+            [4] = { newsType = 2, whoText = "P3", year = 23, month = 10, day = 10 },
+            [5] = { newsType = 3, whoText = "P4", year = 23, month = 10, day = 9 },
         }
     end)
 

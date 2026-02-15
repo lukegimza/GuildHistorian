@@ -214,15 +214,17 @@ function NewsReader:Read(forceRefresh)
     if QueryGuildNews then QueryGuildNews() end
 
     local results = {}
-    local now = GetServerTime()
     local numNews = GetNumGuildNews and GetNumGuildNews() or 0
     for i = 1, numNews do
         local entry = C_GuildInfo.GetGuildNewsInfo(i)
         if entry and not entry.isHeader then
-            local secondsAgo = (entry.year or 0) * 31536000
-                             + (entry.month or 0) * 2592000
-                             + (entry.day or 0) * 86400
-            local timestamp = now - secondsAgo
+            local realYear = (entry.year or 0) + 2000
+            local realMonth = (entry.month or 0) + 1
+            local realDay = (entry.day or 0) + 1
+            local timestamp = time({
+                year = realYear, month = realMonth, day = realDay,
+                hour = 0, min = 0, sec = 0,
+            })
 
             local typeInfo = nil
             if ns.NEWS_TYPE_INFO and entry.newsType then

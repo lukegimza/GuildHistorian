@@ -151,6 +151,14 @@ function MainFrame:SelectTab(tabID)
     end
 end
 
+--- Update the guild name in the title bar from the current guild info.
+-- Safe to call at any time; no-op if the frame has not been initialised.
+function MainFrame:RefreshTitle()
+    if not frame then return end
+    local guildName = GetGuildInfo("player") or "No Guild"
+    frame.Title:SetText(format("%s \226\128\148 %s", L["UI_TITLE"], guildName))
+end
+
 --- Show the main frame, initialising it first if needed.
 function MainFrame:Show()
     if not frame then self:Init() end

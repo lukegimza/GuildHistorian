@@ -395,6 +395,8 @@ WOW_PROJECT_ID = 1
 -------------------------------------------------------------------------------
 C_GuildInfo = {
     GuildRoster = function() end,
+    --- Returns a GuildNewsInfo struct with 0-indexed absolute date fields.
+    -- year = offset from 2000 (26 = 2026), month = 0-11 (0 = Jan), day = 0-30.
     GetGuildNewsInfo = function(index)
         local entry = MockState.guildNews[index]
         if not entry then return nil end

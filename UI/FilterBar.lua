@@ -64,7 +64,7 @@ function FilterBar:Init(parent)
     end)
 
     clearButton = CreateFrame("Button", nil, container, "UIPanelButtonTemplate")
-    clearButton:SetSize(50, 20)
+    clearButton:SetSize(80, 20)
     clearButton:SetPoint("TOPRIGHT", -4, -3)
     clearButton:SetText(L["UI_CLEAR_FILTERS"])
     clearButton:SetScript("OnClick", function()
@@ -72,10 +72,10 @@ function FilterBar:Init(parent)
     end)
 
     local datePresets = {
-        { label = "All",  days = nil,  width = 30 },
-        { label = "7d",   days = 7,    width = 26 },
-        { label = "30d",  days = 30,   width = 30 },
-        { label = "90d",  days = 90,   width = 30 },
+        { label = "All",  days = nil,  width = 36 },
+        { label = "7d",   days = 7,    width = 34 },
+        { label = "30d",  days = 30,   width = 38 },
+        { label = "90d",  days = 90,   width = 38 },
     }
 
     local prevDateBtn = clearButton
@@ -83,7 +83,7 @@ function FilterBar:Init(parent)
         local preset = datePresets[i]
         local btn = CreateFrame("Button", nil, container, "UIPanelButtonTemplate")
         btn:SetSize(preset.width, 20)
-        btn:SetPoint("RIGHT", prevDateBtn, "LEFT", -3, 0)
+        btn:SetPoint("RIGHT", prevDateBtn, "LEFT", -4, 0)
         btn:SetText(preset.label)
         btn.presetDays = preset.days
 

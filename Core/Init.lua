@@ -52,6 +52,7 @@ end
 --- Handle GUILD_ROSTER_UPDATE by invalidating the roster cache and refreshing the dashboard.
 function addon:OnRosterUpdate()
     if ns.RosterReader then ns.RosterReader:Invalidate() end
+    if ns.MainFrame then ns.MainFrame:RefreshTitle() end
     if ns.Dashboard then ns.Dashboard:Refresh() end
 end
 
