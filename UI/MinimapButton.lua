@@ -43,4 +43,19 @@ function MinimapButton:Init()
     })
 
     LDBIcon:Register(ns.ADDON_NAME, dataObj, ns.addon.db.profile.minimap)
+
+    local button = LDBIcon:GetMinimapButton(ns.ADDON_NAME)
+    if button then
+        local bg = button:CreateTexture(nil, "BACKGROUND", nil, -1)
+        bg:SetSize(24, 24)
+        bg:SetPoint("CENTER", button, "CENTER", 0, 0)
+        bg:SetColorTexture(0.16, 0.12, 0.09, 1)
+        bg:SetTexCoord(0, 1, 0, 1)
+
+        local mask = button:CreateMaskTexture()
+        mask:SetSize(24, 24)
+        mask:SetPoint("CENTER", button, "CENTER", 0, 0)
+        mask:SetTexture("Interface\\CHARACTERFRAME\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        bg:AddMaskTexture(mask)
+    end
 end

@@ -492,6 +492,10 @@ function FrameMethods:CreateFontString(name, layer, template)
     fs.SetWordWrap = function(s, ...) end
     return fs
 end
+function FrameMethods:CreateMaskTexture()
+    return CreateFrame("MaskTexture", nil, self)
+end
+function FrameMethods:AddMaskTexture(mask) end
 function FrameMethods:SetTexture(...) end
 function FrameMethods:SetTexCoord(...) end
 function FrameMethods:SetVertexColor(...) end
@@ -853,7 +857,11 @@ function LDB:NewDataObject(name, obj)
 end
 
 local LibDBIcon = LibStub:NewLibrary("LibDBIcon-1.0", 1)
-function LibDBIcon:Register(name, obj, db) end
+LibDBIcon._buttons = {}
+function LibDBIcon:Register(name, obj, db)
+    self._buttons[name] = CreateFrame("Button", "LibDBIcon10_" .. name)
+end
+function LibDBIcon:GetMinimapButton(name) return self._buttons[name] end
 function LibDBIcon:Show(name) end
 function LibDBIcon:Hide(name) end
 
