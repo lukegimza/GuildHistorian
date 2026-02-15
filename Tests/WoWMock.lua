@@ -132,6 +132,8 @@ function MockState:Reset()
     self.numGuildNews = 0
     self.numGuildEvents = 0
     self.achievementCategories = {}
+    self.clubId = nil
+    self.clubMembers = nil
 end
 
 -------------------------------------------------------------------------------
@@ -404,6 +406,24 @@ C_AddOns = {
     GetAddOnMetadata = function(addon, field)
         if field == "Version" then return "1.0.0" end
         return nil
+    end,
+}
+
+C_Club = {
+    GetGuildClubId = function()
+        return MockState.clubId or nil
+    end,
+    GetClubMembers = function(clubId)
+        if not MockState.clubMembers then return {} end
+        local ids = {}
+        for i = 1, #MockState.clubMembers do
+            ids[i] = i
+        end
+        return ids
+    end,
+    GetClubMemberInfo = function(clubId, memberId)
+        if not MockState.clubMembers then return nil end
+        return MockState.clubMembers[memberId]
     end,
 }
 

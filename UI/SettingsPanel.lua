@@ -26,6 +26,7 @@ local CARD_TOGGLES = {
     { key = "showActivitySnapshot",   label = L["SETTINGS_CARD_ACTIVITY_SNAPSHOT"],   desc = L["SETTINGS_CARD_ACTIVITY_SNAPSHOT_DESC"] },
     { key = "showClassComposition",   label = L["SETTINGS_CARD_CLASS_COMPOSITION"],   desc = L["SETTINGS_CARD_CLASS_COMPOSITION_DESC"] },
     { key = "showAchievementProgress",label = L["SETTINGS_CARD_ACHIEVEMENT_PROGRESS"],desc = L["SETTINGS_CARD_ACHIEVEMENT_PROGRESS_DESC"] },
+    { key = "showMythicPlus",        label = L["SETTINGS_CARD_MYTHIC_PLUS"],        desc = L["SETTINGS_CARD_MYTHIC_PLUS_DESC"] },
 }
 
 --- Register with Blizzard's Settings UI and build the inline settings tab.

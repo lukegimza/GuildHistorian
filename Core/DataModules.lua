@@ -374,6 +374,54 @@ function RosterReader:GetCounts()
     }
 end
 
+--- Return the top N guild members ranked by Mythic+ rating.
+-- Uses C_Club API to fetch overallDungeonScore, cross-referenced with roster
+-- data for class info. Only max-level characters are included.
+---@param count number|nil Number of members to return (default 10)
+---@return table[] leaders Sorted array of {name, class, score}, highest score first
+function RosterReader:GetTopMythicPlus(count)
+    local clubId = C_Club and C_Club.GetGuildClubId and C_Club.GetGuildClubId()
+    if not clubId then return {} end
+
+    local memberIds = C_Club.GetClubMembers(clubId)
+    if not memberIds or #memberIds == 0 then return {} end
+
+    local maxLevel = GetMaxPlayerLevel and GetMaxPlayerLevel() or MAX_PLAYER_LEVEL or 80
+    local roster = self:Read()
+    local rosterByName = {}
+    for _, m in ipairs(roster) do
+        local short = m.name:match("^([^%-]+)")
+        rosterByName[short] = m
+    end
+
+    local results = {}
+    for _, memberId in ipairs(memberIds) do
+        local info = C_Club.GetClubMemberInfo(clubId, memberId)
+        if info and info.overallDungeonScore and info.overallDungeonScore > 0 then
+            local short = info.name and info.name:match("^([^%-]+)") or info.name
+            local rosterEntry = rosterByName[short]
+            local level = rosterEntry and rosterEntry.level or (info.level or 0)
+            if level == maxLevel then
+                tinsert(results, {
+                    name = info.name,
+                    class = rosterEntry and rosterEntry.class or info.class or "WARRIOR",
+                    score = info.overallDungeonScore,
+                })
+            end
+        end
+    end
+
+    table.sort(results, function(a, b)
+        return a.score > b.score
+    end)
+
+    local top = {}
+    for i = 1, math.min(count or 10, #results) do
+        tinsert(top, results[i])
+    end
+    return top
+end
+
 --- Clear the roster cache, forcing a fresh read on next access.
 function RosterReader:Invalidate()
     rosterCache = nil

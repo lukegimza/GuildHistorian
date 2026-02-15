@@ -1,8 +1,8 @@
 --- Dashboard tab container with scrollable two-column card layout.
--- Hosts the seven dashboard cards (Guild Pulse, On This Day, Recent Activity,
--- Top Achievers, Activity Snapshot, Class Composition, Achievement Progress)
--- arranged in a responsive grid inside a scroll frame.
--- Seven cards. Seven deadly sins. Not a coincidence.
+-- Hosts the eight dashboard cards (Guild Pulse, On This Day, Recent Activity,
+-- Top Achievers, Activity Snapshot, Class Composition, Achievement Progress,
+-- Mythic+) arranged in a responsive grid inside a scroll frame.
+-- Eight cards. Eight circles of hell. Not a coincidence.
 -- @module Dashboard
 
 local GH, ns = ...
@@ -126,15 +126,27 @@ function Dashboard:BuildCards()
         end
     end
 
-    -- Row 5: Achievement Progress (full width)
+    -- Row 5: Achievement Progress (left) | Mythic+ (right)
+    local row5Left, row5Right
     if not profile or profile.cards.showAchievementProgress then
-        local card = Cards:CreateAchievementProgress(scrollChild, fullWidth)
-        if card then
-            card:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", GAP, yOffset)
-            cardFrames[#cardFrames + 1] = card
-            yOffset = yOffset - card:GetHeight() - GAP
+        row5Left = Cards:CreateAchievementProgress(scrollChild, halfWidth)
+        if row5Left then
+            row5Left:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", GAP, yOffset)
+            cardFrames[#cardFrames + 1] = row5Left
         end
     end
+    if not profile or profile.cards.showMythicPlus then
+        row5Right = Cards:CreateMythicPlus(scrollChild, halfWidth)
+        if row5Right then
+            row5Right:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", GAP + halfWidth + GAP, yOffset)
+            cardFrames[#cardFrames + 1] = row5Right
+        end
+    end
+    local row5Height = math.max(
+        row5Left and row5Left:GetHeight() or 0,
+        row5Right and row5Right:GetHeight() or 0
+    )
+    if row5Height > 0 then yOffset = yOffset - row5Height - GAP end
 
     scrollChild:SetHeight(math.abs(yOffset))
 end

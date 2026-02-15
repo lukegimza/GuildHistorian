@@ -530,6 +530,79 @@ describe("EventLogReader:Read", function()
     end)
 end)
 
+-------------------------------------------------------------------------------
+-- RosterReader:GetTopMythicPlus
+-------------------------------------------------------------------------------
+
+describe("RosterReader:GetTopMythicPlus", function()
+    beforeEach(function()
+        MockState:Reset()
+        ns.RosterReader:Invalidate()
+        MockState.maxPlayerLevel = 80
+        MockState.clubId = 1
+        MockState.guildMembers = {
+            { name = "Tank-Realm", rank = "Officer", rankIndex = 1, level = 80, class = "WARRIOR", achievementPoints = 5000 },
+            { name = "Healer-Realm", rank = "Member", rankIndex = 2, level = 80, class = "PRIEST", achievementPoints = 8000 },
+            { name = "Leveler-Realm", rank = "Member", rankIndex = 2, level = 70, class = "ROGUE", achievementPoints = 1000 },
+            { name = "DPS-Realm", rank = "Member", rankIndex = 2, level = 80, class = "MAGE", achievementPoints = 6000 },
+        }
+        MockState.clubMembers = {
+            [1] = { name = "Tank", class = "WARRIOR", level = 80, overallDungeonScore = 2500 },
+            [2] = { name = "Healer", class = "PRIEST", level = 80, overallDungeonScore = 3000 },
+            [3] = { name = "Leveler", class = "ROGUE", level = 70, overallDungeonScore = 500 },
+            [4] = { name = "DPS", class = "MAGE", level = 80, overallDungeonScore = 1800 },
+        }
+    end)
+
+    it("should return results sorted by score descending", function()
+        local top = ns.RosterReader:GetTopMythicPlus()
+        A.isTable(top)
+        A.isTrue(#top >= 2, "Should have at least 2 max-level results")
+        A.equals("Healer", top[1].name)
+        A.equals(3000, top[1].score)
+        A.equals("Tank", top[2].name)
+        A.equals(2500, top[2].score)
+    end)
+
+    it("should filter to max-level characters only", function()
+        local top = ns.RosterReader:GetTopMythicPlus()
+        for _, entry in ipairs(top) do
+            A.isTrue(entry.name ~= "Leveler", "Should not include non-max-level character")
+        end
+    end)
+
+    it("should return empty when no club ID exists", function()
+        MockState.clubId = nil
+        local top = ns.RosterReader:GetTopMythicPlus()
+        A.arrayLength(0, top)
+    end)
+
+    it("should respect count parameter", function()
+        local top = ns.RosterReader:GetTopMythicPlus(2)
+        A.arrayLength(2, top)
+        A.equals("Healer", top[1].name)
+        A.equals("Tank", top[2].name)
+    end)
+
+    it("should exclude members with zero score", function()
+        MockState.clubMembers[4].overallDungeonScore = 0
+        local top = ns.RosterReader:GetTopMythicPlus()
+        for _, entry in ipairs(top) do
+            A.isTrue(entry.score > 0, "Should not include zero-score members")
+        end
+    end)
+
+    it("should include class from roster data", function()
+        local top = ns.RosterReader:GetTopMythicPlus()
+        A.equals("PRIEST", top[1].class)
+        A.equals("WARRIOR", top[2].class)
+    end)
+end)
+
+-------------------------------------------------------------------------------
+-- EventLogReader
+-------------------------------------------------------------------------------
+
 describe("EventLogReader formatted text variants", function()
     beforeEach(function()
         MockState:Reset()

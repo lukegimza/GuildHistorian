@@ -43,6 +43,7 @@ ns.DB_DEFAULTS = {
             showActivitySnapshot = true,
             showClassComposition = true,
             showAchievementProgress = true,
+            showMythicPlus = true,
         },
         debug = false,
     },

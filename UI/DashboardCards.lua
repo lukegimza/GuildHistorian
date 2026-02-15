@@ -343,6 +343,47 @@ function DashboardCards:CreateClassComposition(parent, width)
     return card
 end
 
+--- Create the Mythic+ Leaderboard card ranking guild members by M+ rating.
+---@param parent Frame Parent frame
+---@param width number Card width in pixels
+---@return Frame card Populated Mythic+ Leaderboard card
+function DashboardCards:CreateMythicPlus(parent, width)
+    local leaders = ns.RosterReader and ns.RosterReader:GetTopMythicPlus(10) or {}
+    local card = CreateCardFrame(parent, width, L["CARD_MYTHIC_PLUS_TITLE"])
+    local y = card._contentStart
+
+    if #leaders == 0 then
+        local noData = card:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        noData:SetPoint("TOPLEFT", 10, y)
+        noData:SetText(L["CARD_MYTHIC_PLUS_EMPTY"])
+        noData:SetTextColor(0.5, 0.5, 0.5)
+        y = y - 20
+    else
+        for i, member in ipairs(leaders) do
+            local rankText = card:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            rankText:SetPoint("TOPLEFT", 10, y)
+            rankText:SetText(tostring(i) .. ".")
+            rankText:SetTextColor(0.7, 0.7, 0.7)
+
+            local nameText = card:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            nameText:SetPoint("TOPLEFT", 30, y)
+            local coloredName = Utils.ClassColoredName(member.name, member.class)
+            nameText:SetText(coloredName)
+
+            local scoreText = card:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            scoreText:SetPoint("TOPRIGHT", -10, y)
+            scoreText:SetJustifyH("RIGHT")
+            scoreText:SetText(tostring(member.score))
+            scoreText:SetTextColor(1, 0.84, 0)
+
+            y = y - 20
+        end
+    end
+
+    card:SetHeight(max(80, math.abs(y) + 8))
+    return card
+end
+
 --- Create the Achievement Progress card with per-category progress bars.
 ---@param parent Frame Parent frame
 ---@param width number Card width in pixels
