@@ -53,29 +53,26 @@ function AchievementScanner:Scan(forceRefresh)
     for _, catID in ipairs(categoryIDs) do
         local numAchievements = GetCategoryNumAchievements(catID, true)
         for i = 1, numAchievements do
-            local achievementID = GetCategoryAchievementID(catID, i)
-            if achievementID then
-                local id, name, points, completed, month, day, year,
-                      description, flags, icon, _, isGuild = GetAchievementInfo(achievementID)
-                if isGuild then
-                    totalCount = totalCount + 1
-                    totalPoints = totalPoints + (points or 0)
-                    if completed then
-                        earnedCount = earnedCount + 1
-                        earnedPoints = earnedPoints + (points or 0)
-                        local timestamp = Utils.DateToTimestamp(month, day, year)
-                        tinsert(results, {
-                            id = id,
-                            name = name,
-                            description = description,
-                            points = points,
-                            icon = icon,
-                            timestamp = timestamp,
-                            month = month,
-                            day = day,
-                            year = year,
-                        })
-                    end
+            local id, name, points, completed, month, day, year,
+                  description, flags, icon, _, isGuild = GetAchievementInfo(catID, i)
+            if id and isGuild then
+                totalCount = totalCount + 1
+                totalPoints = totalPoints + (points or 0)
+                if completed then
+                    earnedCount = earnedCount + 1
+                    earnedPoints = earnedPoints + (points or 0)
+                    local timestamp = Utils.DateToTimestamp(month, day, year)
+                    tinsert(results, {
+                        id = id,
+                        name = name,
+                        description = description,
+                        points = points,
+                        icon = icon,
+                        timestamp = timestamp,
+                        month = month,
+                        day = day,
+                        year = year,
+                    })
                 end
             end
         end
@@ -150,14 +147,11 @@ function AchievementScanner:GetCategoryProgress()
         local total = 0
 
         for i = 1, numAchievements do
-            local achievementID = GetCategoryAchievementID(catID, i)
-            if achievementID then
-                local _, _, _, completed, _, _, _, _, _, _, _, isGuild = GetAchievementInfo(achievementID)
-                if isGuild then
-                    total = total + 1
-                    if completed then
-                        earned = earned + 1
-                    end
+            local _, _, _, completed, _, _, _, _, _, _, _, isGuild = GetAchievementInfo(catID, i)
+            if isGuild then
+                total = total + 1
+                if completed then
+                    earned = earned + 1
                 end
             end
         end
@@ -208,10 +202,10 @@ function NewsReader:Read(forceRefresh)
         return newsCache
     end
 
-    QueryGuildNews()
+    if QueryGuildNews then QueryGuildNews() end
 
     local results = {}
-    local numNews = GetNumGuildNews()
+    local numNews = GetNumGuildNews and GetNumGuildNews() or 0
     for i = 1, numNews do
         local entry = C_GuildInfo.GetGuildNewsInfo(i)
         if entry then
@@ -421,13 +415,24 @@ function EventLogReader:Read(forceRefresh)
         return eventLogCache
     end
 
-    QueryGuildEventLog()
+    if QueryGuildEventLog then
+        QueryGuildEventLog()
+    end
 
     local results = {}
-    local numEvents = GetNumGuildEvents()
+    local numEvents = GetNumGuildEvents and GetNumGuildEvents() or 0
     for i = 1, numEvents do
-        local eventType, playerName, targetName, rankIndex, timestamp = GetGuildEventInfo(i)
+        local eventType, playerName, targetName, rankIndex,
+              evtYear, evtMonth, evtDay, evtHour = GetGuildEventInfo(i)
         if eventType then
+            local timestamp = 0
+            if evtYear and evtMonth and evtDay then
+                local realYear = (evtYear == 0) and tonumber(date("%Y")) or evtYear
+                timestamp = time({
+                    year = realYear, month = evtMonth, day = evtDay,
+                    hour = evtHour or 0, min = 0, sec = 0,
+                })
+            end
             tinsert(results, {
                 eventType = eventType,
                 playerName = playerName,

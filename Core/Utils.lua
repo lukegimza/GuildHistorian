@@ -65,6 +65,7 @@ end
 ---@param timestamp number Unix epoch seconds
 ---@return string relative Relative time description
 function Utils.RelativeTime(timestamp)
+    if not timestamp or timestamp == 0 then return "Unknown" end
     local diff = GetServerTime() - timestamp
 
     if diff < 60 then

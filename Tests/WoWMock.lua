@@ -271,7 +271,8 @@ end
 function GetGuildEventInfo(index)
     local entry = MockState.guildEventLog[index]
     if not entry then return nil end
-    return entry.eventType, entry.playerName1, entry.playerName2, entry.rankIndex, entry.timestamp
+    return entry.eventType, entry.playerName1, entry.playerName2, entry.rankIndex,
+           entry.year or 0, entry.month or 1, entry.day or 1, entry.hour or 0
 end
 
 function GetGuildRosterInfo(index)
@@ -295,7 +296,20 @@ function GetGuildRosterInfo(index)
         member.standingID or 0
 end
 
-function GetAchievementInfo(id)
+function GetAchievementInfo(idOrCatID, index)
+    local id
+    if index then
+        -- 2-argument form: GetAchievementInfo(categoryID, index)
+        for _, cat in ipairs(MockState.achievementCategories) do
+            if cat.id == idOrCatID then
+                id = cat.achievementIDs and cat.achievementIDs[index] or nil
+                break
+            end
+        end
+        if not id then return nil end
+    else
+        id = idOrCatID
+    end
     local ach = MockState.guildAchievements[id] or MockState.achievements[id]
     if ach then
         return id, ach.name or "Achievement", ach.points or 10,
@@ -407,7 +421,9 @@ C_Timer = {
 Settings = {
     OpenToCategory = function() end,
     RegisterCanvasLayoutCategory = function(canvas, name)
-        return { ID = name }
+        local cat = { ID = name }
+        function cat:GetID() return self.ID end
+        return cat
     end,
     RegisterAddOnCategory = function(category) end,
 }
@@ -561,14 +577,8 @@ function GetRealZoneText() return "Orgrimmar" end
 
 function GetAchievementCriteriaInfo(achievementID, criteriaIndex) return nil end
 
-function GetCategoryAchievementID(categoryID, index)
-    for _, cat in ipairs(MockState.achievementCategories) do
-        if cat.id == categoryID then
-            return cat.achievementIDs and cat.achievementIDs[index] or nil
-        end
-    end
-    return nil
-end
+-- GetCategoryAchievementID does not exist in the WoW API.
+-- Achievement lookup by category uses the 2-argument form of GetAchievementInfo(catID, index).
 
 -------------------------------------------------------------------------------
 -- LibStub Mock

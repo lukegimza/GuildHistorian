@@ -458,9 +458,9 @@ describe("EventLogReader:Read", function()
         ns.EventLogReader:Invalidate()
         MockState.numGuildEvents = 3
         MockState.guildEventLog = {
-            [1] = { eventType = "join", playerName1 = "NewPlayer", playerName2 = nil, rankIndex = 0, timestamp = 1700000100 },
-            [2] = { eventType = "promote", playerName1 = "Officer", playerName2 = "NewPlayer", rankIndex = 3, timestamp = 1700000200 },
-            [3] = { eventType = "quit", playerName1 = "Quitter", playerName2 = nil, rankIndex = 0, timestamp = 1700000300 },
+            [1] = { eventType = "join", playerName1 = "NewPlayer", playerName2 = nil, rankIndex = 0, year = 2024, month = 1, day = 15, hour = 10 },
+            [2] = { eventType = "promote", playerName1 = "Officer", playerName2 = "NewPlayer", rankIndex = 3, year = 2024, month = 1, day = 16, hour = 14 },
+            [3] = { eventType = "quit", playerName1 = "Quitter", playerName2 = nil, rankIndex = 0, year = 2024, month = 1, day = 17, hour = 8 },
         }
     end)
 
@@ -475,7 +475,7 @@ describe("EventLogReader:Read", function()
         local e = results[1]
         A.equals("join", e.eventType)
         A.equals("NewPlayer", e.playerName)
-        A.equals(1700000100, e.timestamp)
+        A.isTrue(e.timestamp > 0, "Timestamp should be constructed from year/month/day/hour")
     end)
 
     it("should format join text correctly", function()
@@ -517,7 +517,7 @@ describe("EventLogReader formatted text variants", function()
     it("should format invite text", function()
         MockState.numGuildEvents = 1
         MockState.guildEventLog = {
-            [1] = { eventType = "invite", playerName1 = "Inviter", playerName2 = "Invitee", rankIndex = 0, timestamp = 1700000000 },
+            [1] = { eventType = "invite", playerName1 = "Inviter", playerName2 = "Invitee", rankIndex = 0, year = 2024, month = 1, day = 1, hour = 12 },
         }
         local results = ns.EventLogReader:Read()
         A.equals("Inviter invited Invitee to the guild", results[1].formattedText)
@@ -526,7 +526,7 @@ describe("EventLogReader formatted text variants", function()
     it("should format demote text", function()
         MockState.numGuildEvents = 1
         MockState.guildEventLog = {
-            [1] = { eventType = "demote", playerName1 = "Officer", playerName2 = "Demoted", rankIndex = 5, timestamp = 1700000000 },
+            [1] = { eventType = "demote", playerName1 = "Officer", playerName2 = "Demoted", rankIndex = 5, year = 2024, month = 1, day = 1, hour = 12 },
         }
         local results = ns.EventLogReader:Read()
         A.equals("Officer was demoted to rank 5", results[1].formattedText)
@@ -535,7 +535,7 @@ describe("EventLogReader formatted text variants", function()
     it("should format remove text", function()
         MockState.numGuildEvents = 1
         MockState.guildEventLog = {
-            [1] = { eventType = "remove", playerName1 = "Officer", playerName2 = "Removed", rankIndex = 0, timestamp = 1700000000 },
+            [1] = { eventType = "remove", playerName1 = "Officer", playerName2 = "Removed", rankIndex = 0, year = 2024, month = 1, day = 1, hour = 12 },
         }
         local results = ns.EventLogReader:Read()
         A.equals("Removed was removed from the guild by Officer", results[1].formattedText)

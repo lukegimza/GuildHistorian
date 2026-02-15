@@ -35,8 +35,8 @@ function addon:OnEnable()
     self:Print(format(L["ADDON_LOADED"], self.version))
 
     C_GuildInfo.GuildRoster()
-    QueryGuildNews()
-    QueryGuildEventLog()
+    if QueryGuildNews then QueryGuildNews() end
+    if QueryGuildEventLog then QueryGuildEventLog() end
 
     self:RegisterEvent("GUILD_ROSTER_UPDATE", "OnRosterUpdate")
     self:RegisterEvent("GUILD_NEWS_UPDATE", "OnNewsUpdate")

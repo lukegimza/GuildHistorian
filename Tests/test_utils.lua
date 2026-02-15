@@ -100,6 +100,14 @@ describe("Utils.RelativeTime", function()
         local result = ns.Utils.RelativeTime(1700000000 - 63072000)
         A.contains("year", result)
     end)
+
+    it("should return 'Unknown' for timestamp 0", function()
+        A.equals("Unknown", ns.Utils.RelativeTime(0))
+    end)
+
+    it("should return 'Unknown' for nil timestamp", function()
+        A.equals("Unknown", ns.Utils.RelativeTime(nil))
+    end)
 end)
 
 describe("Utils.ClassColoredName", function()

@@ -31,8 +31,7 @@ local CARD_TOGGLES = {
 function SettingsPanel:Init()
     local canvas = self:BuildBlizzardCanvas()
     local category = Settings.RegisterCanvasLayoutCategory(canvas, L["ADDON_NAME"])
-    category.ID = ns.ADDON_NAME
-    ns.settingsCategoryID = category.ID
+    ns.settingsCategoryID = category:GetID()
     Settings.RegisterAddOnCategory(category)
 
     self:BuildInlinePanel()

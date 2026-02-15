@@ -33,7 +33,8 @@ function Dashboard:Init()
     scrollFrame:SetPoint("BOTTOMRIGHT", -26, 0)
 
     scrollChild = CreateFrame("Frame", "GuildHistorianDashboardScrollChild", scrollFrame)
-    scrollChild:SetWidth(scrollFrame:GetWidth() or 600)
+    local sfWidth = scrollFrame:GetWidth()
+    scrollChild:SetWidth(sfWidth > 0 and sfWidth or 600)
     scrollFrame:SetScrollChild(scrollChild)
 
     scrollFrame:SetScript("OnSizeChanged", function(self, w)
@@ -49,7 +50,8 @@ function Dashboard:BuildCards()
     if not scrollChild then return end
 
     local GAP = ns.CARD_GAP
-    local totalWidth = scrollChild:GetWidth() or 600
+    local scWidth = scrollChild:GetWidth()
+    local totalWidth = scWidth > 0 and scWidth or 600
     local halfWidth = (totalWidth - GAP * 3) / 2
     local fullWidth = totalWidth - GAP * 2
 
@@ -138,13 +140,17 @@ end
 
 --- Tear down existing cards and rebuild the layout from scratch.
 -- Called when card visibility settings change or when data modules are refreshed.
+-- Reuses the same scrollChild by hiding and releasing old card frames to
+-- prevent frame object accumulation across repeated refreshes.
 function Dashboard:Refresh()
     if not container then return end
-    for _, card in ipairs(cardFrames) do
+    for i = #cardFrames, 1, -1 do
+        local card = cardFrames[i]
         card:Hide()
         card:ClearAllPoints()
+        card:SetParent(nil)
+        cardFrames[i] = nil
     end
-    wipe(cardFrames)
     self:BuildCards()
 end
 
