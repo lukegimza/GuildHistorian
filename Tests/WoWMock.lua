@@ -423,7 +423,8 @@ C_Club = {
     end,
     GetMemberInfo = function(clubId, memberId)
         if not MockState.clubMembers then return nil end
-        return MockState.clubMembers[memberId]
+        local info = MockState.clubMembers[memberId]
+        return info
     end,
 }
 

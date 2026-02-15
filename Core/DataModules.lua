@@ -374,13 +374,24 @@ function RosterReader:GetCounts()
     }
 end
 
+--- Map from WoW classID (number) to class file token (string).
+local CLASS_ID_TO_TOKEN = {
+    [1] = "WARRIOR", [2] = "PALADIN", [3] = "HUNTER", [4] = "ROGUE",
+    [5] = "PRIEST", [6] = "DEATHKNIGHT", [7] = "SHAMAN", [8] = "MAGE",
+    [9] = "WARLOCK", [10] = "MONK", [11] = "DRUID", [12] = "DEMONHUNTER",
+    [13] = "EVOKER",
+}
+
 --- Return the top N guild members ranked by Mythic+ rating.
 -- Uses C_Club API to fetch overallDungeonScore, cross-referenced with roster
 -- data for class info. Only max-level characters are included.
 ---@param count number|nil Number of members to return (default 10)
 ---@return table[] leaders Sorted array of {name, class, score}, highest score first
 function RosterReader:GetTopMythicPlus(count)
-    if not C_Club or not C_Club.GetGuildClubId or not C_Club.GetMemberInfo then return {} end
+    if not C_Club or not C_Club.GetGuildClubId
+       or not C_Club.GetClubMembers or not C_Club.GetMemberInfo then
+        return {}
+    end
     local clubId = C_Club.GetGuildClubId()
     if not clubId then return {} end
 
@@ -398,14 +409,18 @@ function RosterReader:GetTopMythicPlus(count)
     local results = {}
     for _, memberId in ipairs(memberIds) do
         local info = C_Club.GetMemberInfo(clubId, memberId)
-        if info and info.overallDungeonScore and info.overallDungeonScore > 0 then
-            local short = info.name and info.name:match("^([^%-]+)") or info.name
+        if info and info.name and info.overallDungeonScore
+           and info.overallDungeonScore > 0 then
+            local short = info.name:match("^([^%-]+)") or info.name
             local rosterEntry = rosterByName[short]
             local level = rosterEntry and rosterEntry.level or (info.level or 0)
             if level == maxLevel then
+                local classToken = (rosterEntry and rosterEntry.class)
+                    or (info.classID and CLASS_ID_TO_TOKEN[info.classID])
+                    or "WARRIOR"
                 tinsert(results, {
                     name = info.name,
-                    class = rosterEntry and rosterEntry.class or info.class or "WARRIOR",
+                    class = classToken,
                     score = info.overallDungeonScore,
                 })
             end

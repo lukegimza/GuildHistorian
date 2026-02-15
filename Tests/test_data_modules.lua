@@ -547,10 +547,10 @@ describe("RosterReader:GetTopMythicPlus", function()
             { name = "DPS-Realm", rank = "Member", rankIndex = 2, level = 80, class = "MAGE", achievementPoints = 6000 },
         }
         MockState.clubMembers = {
-            [1] = { name = "Tank", class = "WARRIOR", level = 80, overallDungeonScore = 2500 },
-            [2] = { name = "Healer", class = "PRIEST", level = 80, overallDungeonScore = 3000 },
-            [3] = { name = "Leveler", class = "ROGUE", level = 70, overallDungeonScore = 500 },
-            [4] = { name = "DPS", class = "MAGE", level = 80, overallDungeonScore = 1800 },
+            [1] = { name = "Tank", classID = 1, level = 80, overallDungeonScore = 2500 },
+            [2] = { name = "Healer", classID = 5, level = 80, overallDungeonScore = 3000 },
+            [3] = { name = "Leveler", classID = 4, level = 70, overallDungeonScore = 500 },
+            [4] = { name = "DPS", classID = 8, level = 80, overallDungeonScore = 1800 },
         }
     end)
 
