@@ -1,3 +1,8 @@
+--- Timeline entry row renderer.
+-- Handles lazy creation of sub-elements (icon, title, subtitle, timestamp)
+-- on pooled Button frames and populates them from a normalised event record.
+-- @module TimelineEntry
+
 local GH, ns = ...
 
 local L = ns.L
@@ -9,6 +14,9 @@ local ipairs = ipairs
 local TimelineEntry = {}
 ns.TimelineEntry = TimelineEntry
 
+--- Lazily create the icon, title, subtitle, timestamp, and highlight elements on a button.
+-- Idempotent; does nothing if elements already exist.
+---@param button Button The pooled timeline row frame
 function TimelineEntry:EnsureElements(button)
     if button._elementsCreated then return end
     button._elementsCreated = true
@@ -41,6 +49,10 @@ function TimelineEntry:EnsureElements(button)
     button.Timestamp:SetTextColor(0.5, 0.5, 0.5)
 end
 
+--- Populate a timeline row with data from a normalised event record.
+-- Sets the icon, title colour, subtitle, timestamp, and hover tooltip.
+---@param button Button The pooled timeline row frame (must have had EnsureElements called)
+---@param event table Normalised event {type, title, description, timestamp, icon, color}
 function TimelineEntry:Init(button, event)
     if not button or not event then return end
 
@@ -48,7 +60,6 @@ function TimelineEntry:Init(button, event)
 
     button.eventData = event
 
-    -- Use event.icon and event.color directly (set by Timeline:GetMergedEvents)
     if event.icon and button.Icon then
         button.Icon:SetTexture(event.icon)
         button.Icon:Show()

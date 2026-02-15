@@ -1,3 +1,8 @@
+--- Dashboard card factory methods.
+-- Each Create* method returns a self-sizing BackdropTemplate frame populated
+-- with data from the relevant data module. Cards are consumed by Dashboard:BuildCards.
+-- @module DashboardCards
+
 local GH, ns = ...
 
 local L = ns.L
@@ -12,6 +17,11 @@ local floor = math.floor
 local DashboardCards = {}
 ns.DashboardCards = DashboardCards
 
+--- Create a reusable card frame with a title bar and separator line.
+---@param parent Frame Parent frame to attach the card to
+---@param width number Card width in pixels
+---@param title string Display title rendered in gold at the top of the card
+---@return Frame card A BackdropTemplate frame with _contentStart set to the y-offset below the title
 local function CreateCardFrame(parent, width, title)
     local card = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     card:SetWidth(width)
@@ -28,10 +38,14 @@ local function CreateCardFrame(parent, width, title)
     line:SetPoint("TOPRIGHT", -8, -24)
     line:SetColorTexture(0.78, 0.65, 0.35, 0.3)
 
-    card._contentStart = -32  -- y offset where card content begins
+    card._contentStart = -32
     return card
 end
 
+--- Create the Guild Pulse card showing member counts, achievement points, and a progress bar.
+---@param parent Frame Parent frame
+---@param width number Card width in pixels
+---@return Frame card Populated Guild Pulse card
 function DashboardCards:CreateGuildPulse(parent, width)
     local card = CreateCardFrame(parent, width, L["CARD_GUILD_PULSE"])
     local y = card._contentStart
@@ -39,28 +53,24 @@ function DashboardCards:CreateGuildPulse(parent, width)
     local counts = ns.RosterReader and ns.RosterReader:GetCounts() or {total=0, online=0}
     local stats = ns.AchievementScanner and ns.AchievementScanner:GetStats() or {totalPoints=0, earnedPoints=0, totalCount=0, earnedCount=0, completionPct=0}
 
-    -- Members / Online line
     local membersText = card:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     membersText:SetPoint("TOPLEFT", 10, y)
     membersText:SetText(format(L["CARD_MEMBERS_ONLINE"], counts.total, counts.online))
     membersText:SetTextColor(1, 1, 1)
     y = y - 22
 
-    -- Achievement points
     local pointsText = card:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     pointsText:SetPoint("TOPLEFT", 10, y)
     pointsText:SetText(format(L["CARD_ACHIEVEMENT_POINTS"], Utils.FormatNumber(stats.earnedPoints)))
     pointsText:SetTextColor(0.9, 0.9, 0.9)
     y = y - 18
 
-    -- Achievements earned line
     local earnedText = card:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     earnedText:SetPoint("TOPLEFT", 10, y)
     earnedText:SetText(format(L["CARD_ACHIEVEMENTS_EARNED"], stats.earnedCount, stats.totalCount, floor(stats.completionPct)))
     earnedText:SetTextColor(0.7, 0.7, 0.7)
     y = y - 18
 
-    -- Progress bar
     local barBg = card:CreateTexture(nil, "BACKGROUND")
     barBg:SetPoint("TOPLEFT", 10, y)
     barBg:SetSize(width - 20, 12)
@@ -77,9 +87,14 @@ function DashboardCards:CreateGuildPulse(parent, width)
     return card
 end
 
+--- Create the On This Day card listing achievements earned on this date in past years.
+-- Returns nil if there are no matching achievements.
+---@param parent Frame Parent frame
+---@param width number Card width in pixels
+---@return Frame|nil card Populated card, or nil when there are no On This Day matches
 function DashboardCards:CreateOnThisDay(parent, width)
     local matches = ns.AchievementScanner and ns.AchievementScanner:GetOnThisDay() or {}
-    if #matches == 0 then return nil end  -- hide card entirely when no matches
+    if #matches == 0 then return nil end
 
     local card = CreateCardFrame(parent, width, L["CARD_ON_THIS_DAY"])
     local y = card._contentStart
@@ -98,7 +113,6 @@ function DashboardCards:CreateOnThisDay(parent, width)
         y = y - 18
     end
 
-    -- Click hint
     local hint = card:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     hint:SetPoint("TOPLEFT", 10, y - 4)
     hint:SetText(L["CARD_VIEW_TIMELINE"] .. " \226\134\146")
@@ -108,15 +122,18 @@ function DashboardCards:CreateOnThisDay(parent, width)
     card:SetHeight(math.abs(y) + 8)
 
     card:SetScript("OnMouseDown", function()
-        -- Navigate to Timeline tab
         if ns.MainFrame then
-            ns.MainFrame:SelectTab(2)  -- TAB_TIMELINE
+            ns.MainFrame:SelectTab(2)
         end
     end)
 
     return card
 end
 
+--- Create the Recent Activity card showing the latest guild news entries.
+---@param parent Frame Parent frame
+---@param width number Card width in pixels
+---@return Frame card Populated Recent Activity card
 function DashboardCards:CreateRecentActivity(parent, width)
     local entries = ns.NewsReader and ns.NewsReader:Read() or {}
     local card = CreateCardFrame(parent, width, L["CARD_RECENT_ACTIVITY"])
@@ -163,7 +180,6 @@ function DashboardCards:CreateRecentActivity(parent, width)
         end
     end
 
-    -- View full timeline link
     local viewMore = card:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     viewMore:SetPoint("TOPLEFT", 10, y - 4)
     viewMore:SetText("\226\134\146 " .. L["CARD_VIEW_TIMELINE"])
@@ -174,6 +190,10 @@ function DashboardCards:CreateRecentActivity(parent, width)
     return card
 end
 
+--- Create the Top Achievers card ranking guild members by achievement points.
+---@param parent Frame Parent frame
+---@param width number Card width in pixels
+---@return Frame card Populated Top Achievers card
 function DashboardCards:CreateTopAchievers(parent, width)
     local achievers = ns.RosterReader and ns.RosterReader:GetTopAchievers(5) or {}
     local card = CreateCardFrame(parent, width, L["CARD_TOP_ACHIEVERS"])
@@ -203,6 +223,10 @@ function DashboardCards:CreateTopAchievers(parent, width)
     return card
 end
 
+--- Create the Activity Snapshot card summarising news counts by category.
+---@param parent Frame Parent frame
+---@param width number Card width in pixels
+---@return Frame card Populated Activity Snapshot card
 function DashboardCards:CreateActivitySnapshot(parent, width)
     local summary = ns.NewsReader and ns.NewsReader:GetSummary() or {}
     local card = CreateCardFrame(parent, width, L["CARD_ACTIVITY_SNAPSHOT"])
@@ -241,6 +265,10 @@ function DashboardCards:CreateActivitySnapshot(parent, width)
     return card
 end
 
+--- Create the Class Composition card showing online max-level members grouped by class.
+---@param parent Frame Parent frame
+---@param width number Card width in pixels
+---@return Frame card Populated Class Composition card
 function DashboardCards:CreateClassComposition(parent, width)
     local composition = ns.RosterReader and ns.RosterReader:GetClassComposition() or {}
     local onlineMaxLevel = ns.RosterReader and ns.RosterReader:GetOnlineMaxLevel() or {}
@@ -249,11 +277,9 @@ function DashboardCards:CreateClassComposition(parent, width)
     local card = CreateCardFrame(parent, width, format(L["CARD_CLASS_COMPOSITION"], totalOnlineMax))
     local y = card._contentStart
 
-    -- Display classes in a flowing layout
     local xOffset = 10
     local maxX = width - 10
 
-    -- Sort classes by count descending
     local sorted = {}
     for class, count in pairs(composition) do
         sorted[#sorted + 1] = { class = class, count = count }
@@ -290,6 +316,10 @@ function DashboardCards:CreateClassComposition(parent, width)
     return card
 end
 
+--- Create the Achievement Progress card with per-category progress bars.
+---@param parent Frame Parent frame
+---@param width number Card width in pixels
+---@return Frame card Populated Achievement Progress card
 function DashboardCards:CreateAchievementProgress(parent, width)
     local progress = ns.AchievementScanner and ns.AchievementScanner:GetCategoryProgress() or {}
     local card = CreateCardFrame(parent, width, L["CARD_ACHIEVEMENT_PROGRESS"])
@@ -297,13 +327,11 @@ function DashboardCards:CreateAchievementProgress(parent, width)
     local barWidth = width - 120
 
     for _, cat in ipairs(progress) do
-        -- Category name and count
         local label = card:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         label:SetPoint("TOPLEFT", 10, y)
         label:SetText(format("%s  %d/%d", cat.categoryName, cat.earned, cat.total))
         label:SetTextColor(0.9, 0.9, 0.9)
 
-        -- Percentage
         local pctText = card:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         pctText:SetPoint("TOPRIGHT", -10, y)
         pctText:SetJustifyH("RIGHT")
@@ -312,13 +340,11 @@ function DashboardCards:CreateAchievementProgress(parent, width)
 
         y = y - 14
 
-        -- Progress bar background
         local barBg = card:CreateTexture(nil, "BACKGROUND")
         barBg:SetPoint("TOPLEFT", 10, y)
         barBg:SetSize(barWidth, 8)
         barBg:SetColorTexture(0.15, 0.15, 0.2, 0.8)
 
-        -- Progress bar fill
         local fillWidth = max(1, barWidth * (cat.pct / 100))
         local barFill = card:CreateTexture(nil, "ARTWORK")
         barFill:SetPoint("TOPLEFT", barBg, "TOPLEFT", 0, 0)

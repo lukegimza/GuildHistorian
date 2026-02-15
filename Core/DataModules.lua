@@ -1,3 +1,10 @@
+--- API-driven data reader modules for GuildHistorian.
+-- Provides four stateless reader classes that cache results from WoW's
+-- server-side APIs: AchievementScanner, NewsReader, RosterReader, and
+-- EventLogReader. Each module exposes a Read/Scan entry point, filtered
+-- view methods, and an Invalidate method to force a cache refresh.
+-- @module DataModules
+
 local GH, ns = ...
 
 local Utils = ns.Utils
@@ -20,6 +27,11 @@ ns.AchievementScanner = AchievementScanner
 local achievementCache = nil
 local statsCache = nil
 
+--- Scan all guild achievement categories and return completed achievements.
+-- Results are sorted by timestamp descending (newest first) and cached
+-- until Invalidate is called or forceRefresh is true.
+---@param forceRefresh boolean|nil When true, discard the cache and re-scan
+---@return table[] achievements Array of {id, name, description, points, icon, timestamp, month, day, year}
 function AchievementScanner:Scan(forceRefresh)
     if achievementCache and not forceRefresh then
         return achievementCache
@@ -69,7 +81,6 @@ function AchievementScanner:Scan(forceRefresh)
         end
     end
 
-    -- Sort by timestamp descending (newest first)
     table.sort(results, function(a, b)
         return a.timestamp > b.timestamp
     end)
@@ -86,6 +97,9 @@ function AchievementScanner:Scan(forceRefresh)
     return achievementCache
 end
 
+--- Return aggregate achievement statistics for the guild.
+-- Triggers a scan if the cache is empty.
+---@return table stats {totalPoints, earnedPoints, totalCount, earnedCount, completionPct}
 function AchievementScanner:GetStats()
     if not statsCache then
         self:Scan()
@@ -93,6 +107,8 @@ function AchievementScanner:GetStats()
     return statsCache
 end
 
+--- Find guild achievements completed on today's calendar date in prior years.
+---@return table[] matches Array of {name, description, points, icon, yearsAgo, timestamp}
 function AchievementScanner:GetOnThisDay()
     local cache = self:Scan()
     local now = GetServerTime()
@@ -118,6 +134,9 @@ function AchievementScanner:GetOnThisDay()
     return matches
 end
 
+--- Compute per-category completion percentages for guild achievements.
+-- Results are sorted by completion percentage descending.
+---@return table[] categories Array of {categoryName, earned, total, pct}
 function AchievementScanner:GetCategoryProgress()
     if not IsInGuild() then return {} end
 
@@ -153,7 +172,6 @@ function AchievementScanner:GetCategoryProgress()
         end
     end
 
-    -- Sort by pct descending
     table.sort(categories, function(a, b)
         return a.pct > b.pct
     end)
@@ -161,6 +179,7 @@ function AchievementScanner:GetCategoryProgress()
     return categories
 end
 
+--- Clear the achievement and stats caches, forcing a fresh scan on next access.
 function AchievementScanner:Invalidate()
     achievementCache = nil
     statsCache = nil
@@ -175,6 +194,10 @@ ns.NewsReader = NewsReader
 
 local newsCache = nil
 
+--- Read the guild news feed and return formatted entries.
+-- Queries C_GuildInfo.QueryGuildNews and caches the result until invalidated.
+---@param forceRefresh boolean|nil When true, discard the cache and re-query
+---@return table[] entries Array of {newsType, who, what, dataID, timestamp, membersPresent, typeInfo}
 function NewsReader:Read(forceRefresh)
     if newsCache and not forceRefresh then
         return newsCache
@@ -218,6 +241,8 @@ function NewsReader:Read(forceRefresh)
     return newsCache
 end
 
+--- Summarise the current news cache by counting entries per news type.
+---@return table<number, number> summary Map of newsType ID to occurrence count
 function NewsReader:GetSummary()
     local cache = self:Read()
     local summary = {}
@@ -228,6 +253,7 @@ function NewsReader:GetSummary()
     return summary
 end
 
+--- Clear the news cache, forcing a fresh query on next access.
 function NewsReader:Invalidate()
     newsCache = nil
 end
@@ -241,6 +267,9 @@ ns.RosterReader = RosterReader
 
 local rosterCache = nil
 
+--- Read the full guild roster into a cached array.
+---@param forceRefresh boolean|nil When true, discard the cache and re-read
+---@return table[] members Array of member records with name, rank, level, class, etc.
 function RosterReader:Read(forceRefresh)
     if rosterCache and not forceRefresh then
         return rosterCache
@@ -279,6 +308,8 @@ function RosterReader:Read(forceRefresh)
     return rosterCache
 end
 
+--- Return only online members at max level.
+---@return table[] members Filtered subset of the roster cache
 function RosterReader:GetOnlineMaxLevel()
     local cache = self:Read()
     local maxLevel = GetMaxPlayerLevel()
@@ -291,6 +322,8 @@ function RosterReader:GetOnlineMaxLevel()
     return results
 end
 
+--- Count online max-level members grouped by class token.
+---@return table<string, number> composition Map of class token to member count
 function RosterReader:GetClassComposition()
     local online = self:GetOnlineMaxLevel()
     local composition = {}
@@ -301,9 +334,11 @@ function RosterReader:GetClassComposition()
     return composition
 end
 
+--- Return the top N guild members ranked by achievement points.
+---@param count number|nil Number of members to return (default 5)
+---@return table[] achievers Sorted array of member records, highest points first
 function RosterReader:GetTopAchievers(count)
     local cache = self:Read()
-    -- Copy to avoid mutating cache
     local sorted = {}
     for _, member in ipairs(cache) do
         tinsert(sorted, member)
@@ -318,6 +353,8 @@ function RosterReader:GetTopAchievers(count)
     return results
 end
 
+--- Return total and online member counts.
+---@return table counts {total: number, online: number}
 function RosterReader:GetCounts()
     local cache = self:Read()
     local online = 0
@@ -332,6 +369,7 @@ function RosterReader:GetCounts()
     }
 end
 
+--- Clear the roster cache, forcing a fresh read on next access.
 function RosterReader:Invalidate()
     rosterCache = nil
 end
@@ -345,6 +383,12 @@ ns.EventLogReader = EventLogReader
 
 local eventLogCache = nil
 
+--- Build a human-readable description for a guild event log entry.
+---@param eventType string Event type key ("invite", "join", "promote", etc.)
+---@param playerName string|nil Name of the acting player
+---@param targetName string|nil Name of the affected player (invites, removes)
+---@param rankIndex number|nil Guild rank index for promotions/demotions
+---@return string text Formatted event description
 local function formatEventText(eventType, playerName, targetName, rankIndex)
     if eventType == "invite" then
         return format("%s invited %s to the guild", playerName or "Unknown", targetName or "Unknown")
@@ -363,6 +407,10 @@ local function formatEventText(eventType, playerName, targetName, rankIndex)
     end
 end
 
+--- Read the guild event log and return formatted entries.
+-- Queries QueryGuildEventLog and caches the result until invalidated.
+---@param forceRefresh boolean|nil When true, discard the cache and re-read
+---@return table[] events Array of {eventType, playerName, targetName, rankIndex, timestamp, formattedText}
 function EventLogReader:Read(forceRefresh)
     if eventLogCache and not forceRefresh then
         return eventLogCache
@@ -395,6 +443,7 @@ function EventLogReader:Read(forceRefresh)
     return eventLogCache
 end
 
+--- Clear the event log cache, forcing a fresh read on next access.
 function EventLogReader:Invalidate()
     eventLogCache = nil
 end

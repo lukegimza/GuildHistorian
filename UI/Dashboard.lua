@@ -1,3 +1,9 @@
+--- Dashboard tab container with scrollable two-column card layout.
+-- Hosts the seven dashboard cards (Guild Pulse, On This Day, Recent Activity,
+-- Top Achievers, Activity Snapshot, Class Composition, Achievement Progress)
+-- arranged in a responsive grid inside a scroll frame.
+-- @module Dashboard
+
 local GH, ns = ...
 
 local L = ns.L
@@ -11,6 +17,8 @@ local scrollFrame = nil
 local scrollChild = nil
 local cardFrames = {}
 
+--- Create the scroll frame container and build the initial card layout.
+-- Anchored inside the MainFrame content area. Safe to call multiple times.
 function Dashboard:Init()
     if container then return end
 
@@ -35,6 +43,8 @@ function Dashboard:Init()
     self:BuildCards()
 end
 
+--- Lay out dashboard cards in a two-column grid, respecting visibility settings.
+-- Cards are positioned top-down; each row's height is the tallest card in the pair.
 function Dashboard:BuildCards()
     if not scrollChild then return end
 
@@ -126,9 +136,10 @@ function Dashboard:BuildCards()
     scrollChild:SetHeight(math.abs(yOffset))
 end
 
+--- Tear down existing cards and rebuild the layout from scratch.
+-- Called when card visibility settings change or when data modules are refreshed.
 function Dashboard:Refresh()
     if not container then return end
-    -- Clear existing cards
     for _, card in ipairs(cardFrames) do
         card:Hide()
         card:ClearAllPoints()
@@ -137,12 +148,14 @@ function Dashboard:Refresh()
     self:BuildCards()
 end
 
+--- Show the dashboard panel, initialising it if needed, and refresh card data.
 function Dashboard:Show()
     if not container then self:Init() end
     if container then container:Show() end
     self:Refresh()
 end
 
+--- Hide the dashboard panel.
 function Dashboard:Hide()
     if container then container:Hide() end
 end

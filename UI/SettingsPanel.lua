@@ -1,3 +1,8 @@
+--- Settings panel for both the Blizzard Settings canvas and the inline tab.
+-- Provides checkboxes for minimap visibility, On This Day popup, and
+-- individual dashboard card toggles. Changes take effect immediately.
+-- @module SettingsPanel
+
 local GH, ns = ...
 
 local L = ns.L
@@ -22,6 +27,7 @@ local CARD_TOGGLES = {
     { key = "showAchievementProgress",label = L["SETTINGS_CARD_ACHIEVEMENT_PROGRESS"],desc = L["SETTINGS_CARD_ACHIEVEMENT_PROGRESS_DESC"] },
 }
 
+--- Register with Blizzard's Settings UI and build the inline settings tab.
 function SettingsPanel:Init()
     local canvas = self:BuildBlizzardCanvas()
     local category = Settings.RegisterCanvasLayoutCategory(canvas, L["ADDON_NAME"])
@@ -32,6 +38,10 @@ function SettingsPanel:Init()
     self:BuildInlinePanel()
 end
 
+--- Populate a parent frame with all settings controls (shared between canvas and inline).
+---@param parent Frame The frame to attach controls to
+---@param startY number Initial y-offset for the first control
+---@return number yOffset Final y-offset after all controls
 local function BuildSettingsContent(parent, startY)
     local yOffset = startY
 
@@ -70,6 +80,8 @@ local function BuildSettingsContent(parent, startY)
     return yOffset
 end
 
+--- Build the canvas frame registered with Blizzard's Settings UI.
+---@return Frame canvas The settings canvas frame
 function SettingsPanel:BuildBlizzardCanvas()
     local canvas = CreateFrame("Frame", "GuildHistorianSettingsCanvas")
     canvas:Hide()
@@ -90,6 +102,7 @@ function SettingsPanel:BuildBlizzardCanvas()
     return canvas
 end
 
+--- Build the inline settings panel shown inside the MainFrame Settings tab.
 function SettingsPanel:BuildInlinePanel()
     local parent = ns.MainFrame and ns.MainFrame:GetContentFrame()
     if not parent then return end
@@ -101,6 +114,11 @@ function SettingsPanel:BuildInlinePanel()
     BuildSettingsContent(inlineContainer, -8)
 end
 
+--- Create a gold section header with an underline separator.
+---@param parent Frame Parent frame
+---@param yOffset number Current vertical position
+---@param text string Header label
+---@return number yOffset Updated vertical position after the header
 function SettingsPanel:CreateSectionHeader(parent, yOffset, text)
     local header = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     header:SetPoint("TOPLEFT", 8, yOffset)
@@ -116,6 +134,14 @@ function SettingsPanel:CreateSectionHeader(parent, yOffset, text)
     return yOffset - 24
 end
 
+--- Create a labelled checkbox with a tooltip and getter/setter callbacks.
+---@param parent Frame Parent frame
+---@param yOffset number Current vertical position
+---@param label string Checkbox label text
+---@param tooltip string|nil Tooltip description shown on hover
+---@param getter fun(): boolean Returns the current setting value
+---@param setter fun(val: boolean) Called when the checkbox state changes
+---@return number yOffset Updated vertical position after the checkbox
 function SettingsPanel:CreateCheckbox(parent, yOffset, label, tooltip, getter, setter)
     local check = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
     check:SetSize(24, 24)
@@ -146,11 +172,13 @@ function SettingsPanel:CreateCheckbox(parent, yOffset, label, tooltip, getter, s
     return yOffset - 28
 end
 
+--- Show the inline settings panel inside the MainFrame.
 function SettingsPanel:ShowInline()
     if not inlineContainer then self:BuildInlinePanel() end
     if inlineContainer then inlineContainer:Show() end
 end
 
+--- Hide the inline settings panel.
 function SettingsPanel:HideInline()
     if inlineContainer then inlineContainer:Hide() end
 end

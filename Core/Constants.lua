@@ -1,3 +1,8 @@
+--- GuildHistorian constants and default configuration.
+-- Defines news types, event log types, difficulty mappings, database defaults,
+-- and shared UI backdrop settings used across the addon.
+-- @module Constants
+
 local GH, ns = ...
 
 ns.ADDON_NAME = "GuildHistorian"
@@ -6,6 +11,8 @@ ns.ADDON_PREFIX = "GH"
 ns.ON_THIS_DAY_DELAY = 10
 ns.ON_THIS_DAY_DISMISS = 30
 
+--- Maps guild news type IDs to their integer constants.
+-- Values correspond to WoW's internal guild news type enum.
 ns.NEWS_TYPES = {
     GUILD_ACHIEVEMENT   = 0,
     PLAYER_ACHIEVEMENT  = 1,
@@ -18,6 +25,8 @@ ns.NEWS_TYPES = {
     EVENT               = 8,
 }
 
+--- Display metadata for each news type, indexed by news type ID.
+-- Each entry contains label (string), icon (texture path), and color (RGB table).
 ns.NEWS_TYPE_INFO = {
     [0] = { label = "Guild Achievement", icon = "Interface\\Icons\\Achievement_GuildPerk_EverybodysFriend", color = {0.78, 0.61, 1.0} },
     [1] = { label = "Achievement",       icon = "Interface\\Icons\\Achievement_General",                    color = {1.0, 0.78, 0.0} },
@@ -30,6 +39,7 @@ ns.NEWS_TYPE_INFO = {
     [8] = { label = "Event",             icon = "Interface\\Icons\\INV_Misc_Note_01",                      color = {0.9, 0.9, 0.9} },
 }
 
+--- Maps guild event log type strings used by GetGuildEventInfo.
 ns.EVENT_LOG_TYPES = {
     INVITE  = "invite",
     JOIN    = "join",
@@ -44,6 +54,7 @@ ns.DB_VERSION = 1
 ns.CARD_PADDING = 8
 ns.CARD_GAP = 8
 
+--- Maps WoW dungeon difficulty IDs to human-readable names.
 ns.DIFFICULTY_NAMES = {
     [1]  = "Normal",
     [2]  = "Heroic",
@@ -63,6 +74,7 @@ ns.DIFFICULTY_NAMES = {
     [33] = "Timewalking",
 }
 
+--- Default saved variable structure for AceDB.
 ns.DB_DEFAULTS = {
     profile = {
         minimap = { hide = false },
@@ -86,6 +98,7 @@ ns.DB_DEFAULTS = {
     },
 }
 
+--- Shared backdrop template used by all framed UI panels.
 ns.SHARED_BACKDROP = {
     bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
     edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Gold-Border",

@@ -1,3 +1,8 @@
+--- General-purpose utility functions for GuildHistorian.
+-- Provides time formatting, player identification, string helpers,
+-- class colouring, and shared UI backdrop application.
+-- @module Utils
+
 local GH, ns = ...
 
 local Utils = {}
@@ -16,32 +21,55 @@ local floor = math.floor
 local min = math.min
 local time = time
 
+--- Format a Unix timestamp as "YYYY-MM-DD HH:MM".
+---@param timestamp number Unix epoch seconds
+---@return string formatted Formatted date-time string, or "Unknown" if nil
 function Utils.TimestampToDisplay(timestamp)
     if not timestamp then return "Unknown" end
     return date("%Y-%m-%d %H:%M", timestamp)
 end
 
+--- Format a Unix timestamp as "YYYY-MM-DD".
+---@param timestamp number Unix epoch seconds
+---@return string formatted Date string, or "Unknown" if nil
 function Utils.TimestampToDate(timestamp)
     if not timestamp then return "Unknown" end
     return date("%Y-%m-%d", timestamp)
 end
 
+--- Extract the month and day components from a Unix timestamp.
+---@param timestamp number Unix epoch seconds
+---@return number month Month (1-12)
+---@return number day Day of month (1-31)
 function Utils.TimestampToMonthDay(timestamp)
     local d = date("*t", timestamp)
     return d.month, d.day
 end
 
+--- Extract the year component from a Unix timestamp.
+---@param timestamp number Unix epoch seconds
+---@return number year Four-digit year
 function Utils.TimestampToYear(timestamp)
     local d = date("*t", timestamp)
     return d.year
 end
 
+--- Convert a WoW achievement date (month, day, two-digit year) to a Unix timestamp.
+-- WoW returns year as an offset from 2000 (e.g. 24 = 2024).
+---@param month number Month (1-12)
+---@param day number Day of month (1-31)
+---@param year number Two-digit year offset from 2000
+---@return number timestamp Unix epoch seconds, or 0 if any parameter is nil
 function Utils.DateToTimestamp(month, day, year)
     if not month or not day or not year then return 0 end
     local realYear = year + 2000
     return time({ year = realYear, month = month, day = day, hour = 0, min = 0, sec = 0 })
 end
 
+--- Convert a Unix timestamp to a human-readable relative time string.
+-- Returns phrases like "just now", "5 minutes ago", "3 days ago", etc.
+---@param timestamp number Unix epoch seconds
+---@return string relative Relative time description
 function Utils.RelativeTime(timestamp)
     local diff = GetServerTime() - timestamp
 
@@ -68,6 +96,9 @@ function Utils.RelativeTime(timestamp)
     end
 end
 
+--- Format a large number with SI suffixes (K, M).
+---@param n number The number to format
+---@return string formatted Compact string representation (e.g. "1.5K", "2.3M")
 function Utils.FormatNumber(n)
     if not n then return "0" end
     if n >= 1000000 then
@@ -78,6 +109,8 @@ function Utils.FormatNumber(n)
     return tostring(n)
 end
 
+--- Build a "Name-Realm" identifier for the current player.
+---@return string|nil playerID "Name-Realm" string, or nil if player name unavailable
 function Utils.GetPlayerID()
     local name, realm = UnitFullName("player")
     if not name then return nil end
@@ -90,6 +123,8 @@ function Utils.GetPlayerID()
     return name .. "-" .. (realm or "Unknown")
 end
 
+--- Build a "GuildName-Realm" key for the player's current guild.
+---@return string|nil guildKey "GuildName-Realm" string, or nil if not in a guild
 function Utils.GetGuildKey()
     if not IsInGuild() then return nil end
     local guildName, _, _, guildRealm = GetGuildInfo("player")
@@ -103,11 +138,19 @@ function Utils.GetGuildKey()
     return guildName .. "-" .. (guildRealm or "Unknown")
 end
 
+--- Safely call a function, routing errors through the global error handler.
+---@param func function The function to call
+---@param ... any Arguments to pass through
+---@return boolean success True if the call completed without error
 function Utils.safecall(func, ...)
     if type(func) ~= "function" then return false end
     return xpcall(func, geterrorhandler(), ...)
 end
 
+--- Wrap a player name in the WoW class colour escape sequence.
+---@param name string Player name to colourise
+---@param class string Uppercase English class token (e.g. "WARRIOR")
+---@return string coloured Colour-escaped name, or plain name if class is unknown
 function Utils.ClassColoredName(name, class)
     if not class or not RAID_CLASS_COLORS[class] then
         return name
@@ -116,11 +159,18 @@ function Utils.ClassColoredName(name, class)
     return format("|c%s%s|r", color.colorStr or "ffffffff", name)
 end
 
+--- Resolve a dungeon difficulty ID to its display name.
+-- Falls back to the WoW API GetDifficultyInfo when the ID is not in the lookup table.
+---@param difficultyID number WoW difficulty ID
+---@return string name Human-readable difficulty name
 function Utils.GetDifficultyName(difficultyID)
     if not difficultyID then return "Unknown" end
     return ns.DIFFICULTY_NAMES[difficultyID] or GetDifficultyInfo(difficultyID) or "Unknown"
 end
 
+--- Recursively deep-copy a table. Non-table values are returned as-is.
+---@param orig table The table to copy
+---@return table copy Independent deep copy of the original
 function Utils.DeepCopy(orig)
     if type(orig) ~= "table" then return orig end
     local copy = {}
@@ -130,12 +180,19 @@ function Utils.DeepCopy(orig)
     return copy
 end
 
+--- Truncate a string to a maximum length, appending "..." if shortened.
+---@param str string The string to truncate
+---@param maxLen number Maximum allowed length including the ellipsis
+---@return string result Truncated string
 function Utils.Truncate(str, maxLen)
     if not str then return "" end
     if #str <= maxLen then return str end
     return strsub(str, 1, maxLen - 3) .. "..."
 end
 
+--- Apply the shared dark-gold backdrop to a BackdropTemplate frame.
+---@param frame Frame A frame inheriting BackdropTemplate
+---@param alpha number|nil Optional background alpha override (defaults to 0.92)
 function Utils.ApplySharedBackdrop(frame, alpha)
     frame:SetBackdrop(ns.SHARED_BACKDROP)
     local bg = ns.SHARED_BACKDROP_COLOR

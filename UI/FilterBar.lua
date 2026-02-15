@@ -1,3 +1,9 @@
+--- Timeline filter bar with search, type checkboxes, and date presets.
+-- Provides text search, event type toggles (achievement/news/roster),
+-- and quick date-range buttons (All, 7d, 30d, 90d). Changes trigger
+-- a Timeline:Refresh via FilterBar:ApplyFilters.
+-- @module FilterBar
+
 local GH, ns = ...
 
 local L = ns.L
@@ -29,6 +35,9 @@ local filterTypes = {
     { type = "event_log",   label = L["FILTER_ROSTER"],       color = {0.33, 1.0, 0.33} },
 }
 
+--- Build the filter bar UI and anchor it at the top of the given parent frame.
+---@param parent Frame The timeline container to anchor inside
+---@return Frame container The filter bar frame
 function FilterBar:Init(parent)
     if container then return container end
 
@@ -109,6 +118,7 @@ function FilterBar:Init(parent)
     return container
 end
 
+--- Recalculate the type filter table from the current checkbox states.
 function FilterBar:UpdateTypeFilters()
     local anyUnchecked = false
     local types = {}
@@ -128,6 +138,8 @@ function FilterBar:UpdateTypeFilters()
     end
 end
 
+--- Apply a date-range preset (or clear it with nil).
+---@param days number|nil Number of days to look back, or nil for no date filter
 function FilterBar:SetDatePreset(days)
     activeDatePreset = days
     if not days then
@@ -141,6 +153,9 @@ function FilterBar:SetDatePreset(days)
     self:ApplyFilters()
 end
 
+--- Set a month/day filter triggered by the On This Day popup.
+---@param month number|nil Month (1-12)
+---@param day number|nil Day (1-31)
 function FilterBar:SetMonthDayFilter(month, day)
     if month then
         activeDatePreset = nil
@@ -151,6 +166,7 @@ function FilterBar:SetMonthDayFilter(month, day)
     self:ApplyFilters()
 end
 
+--- Reset all filters to their default (unfiltered) state.
 function FilterBar:ClearFilters()
     if searchBox then searchBox:SetText("") end
     currentFilters.search = nil
@@ -165,6 +181,8 @@ function FilterBar:ClearFilters()
     self:ApplyFilters()
 end
 
+--- Return the current filter state, or nil if no filters are active.
+---@return table|nil filters {types, search, startDate, endDate} or nil
 function FilterBar:GetFilters()
     if not currentFilters.types and not currentFilters.search and not currentFilters.startDate then
         return nil
@@ -172,6 +190,7 @@ function FilterBar:GetFilters()
     return currentFilters
 end
 
+--- Highlight the active date-preset button in gold.
 function FilterBar:UpdateDateButtonHighlights()
     for _, btn in ipairs(dateButtons) do
         if btn.presetDays == activeDatePreset then
@@ -182,6 +201,7 @@ function FilterBar:UpdateDateButtonHighlights()
     end
 end
 
+--- Notify the Timeline to rebuild using the current filter state.
 function FilterBar:ApplyFilters()
     if ns.Timeline then
         ns.Timeline:Refresh()

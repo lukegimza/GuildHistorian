@@ -1,3 +1,8 @@
+--- Timeline tab showing a merged, filterable event feed.
+-- Combines achievements, guild news, and event log entries into a single
+-- chronological list grouped by date. Uses frame pooling for efficient scrolling.
+-- @module Timeline
+
 local GH, ns = ...
 
 local L = ns.L
@@ -23,6 +28,8 @@ local activeHeaders = {}
 local ENTRY_HEIGHT = 40
 local HEADER_HEIGHT = 24
 
+--- Retrieve or create a timeline entry frame from the pool.
+---@return Frame entry A visible entry frame ready for positioning
 local function AcquireEntry()
     local frame = tremove(entryPool)
     if not frame then
@@ -36,6 +43,8 @@ local function AcquireEntry()
     return frame
 end
 
+--- Retrieve or create a date header frame from the pool.
+---@return Frame header A visible header frame ready for positioning
 local function AcquireHeader()
     local frame = tremove(headerPool)
     if not frame then
@@ -55,6 +64,7 @@ local function AcquireHeader()
     return frame
 end
 
+--- Return all active entry and header frames to their respective pools.
 local function ReleaseAll()
     for i = #activeEntries, 1, -1 do
         local f = activeEntries[i]
@@ -72,10 +82,12 @@ local function ReleaseAll()
     end
 end
 
+--- Merge events from all three data sources into a single sorted array.
+-- Each entry is normalised to {type, title, description, timestamp, icon, color}.
+---@return table[] events Merged array sorted by timestamp descending
 function Timeline:GetMergedEvents()
     local events = {}
 
-    -- Guild achievements (historical)
     local achievements = ns.AchievementScanner and ns.AchievementScanner:Scan() or {}
     for _, ach in ipairs(achievements) do
         events[#events + 1] = {
@@ -88,7 +100,6 @@ function Timeline:GetMergedEvents()
         }
     end
 
-    -- Guild news (recent)
     local news = ns.NewsReader and ns.NewsReader:Read() or {}
     for _, entry in ipairs(news) do
         local info = entry.typeInfo or {}
@@ -103,7 +114,6 @@ function Timeline:GetMergedEvents()
         }
     end
 
-    -- Event log (recent roster changes)
     local eventLog = ns.EventLogReader and ns.EventLogReader:Read() or {}
     for _, evt in ipairs(eventLog) do
         events[#events + 1] = {
@@ -120,6 +130,8 @@ function Timeline:GetMergedEvents()
     return events
 end
 
+--- Create the timeline container, scroll frame, and optional filter bar.
+-- Safe to call multiple times; subsequent calls are no-ops.
 function Timeline:Init()
     if container then return end
 
@@ -154,6 +166,8 @@ function Timeline:Init()
     self:Refresh()
 end
 
+--- Rebuild the timeline by merging, filtering, and laying out events.
+-- Pools all existing frames before recreating the layout.
 function Timeline:Refresh()
     if not scrollChild then self:Init(); return end
 
@@ -161,7 +175,6 @@ function Timeline:Refresh()
 
     local allEvents = self:GetMergedEvents()
 
-    -- Apply filters
     local filters = nil
     if ns.FilterBar then
         filters = ns.FilterBar:GetFilters()
@@ -172,11 +185,9 @@ function Timeline:Refresh()
         events = {}
         for _, event in ipairs(allEvents) do
             local pass = true
-            -- Type filter
             if filters.types and not filters.types[event.type] then
                 pass = false
             end
-            -- Search filter
             if pass and filters.search then
                 local search = strlower(filters.search)
                 local title = strlower(event.title or "")
@@ -185,7 +196,6 @@ function Timeline:Refresh()
                     pass = false
                 end
             end
-            -- Date range filter
             if pass and filters.startDate and event.timestamp < filters.startDate then
                 pass = false
             end
@@ -232,16 +242,21 @@ function Timeline:Refresh()
     scrollChild:SetHeight(yOffset)
 end
 
+--- Show the timeline panel, initialising it if needed, and refresh content.
 function Timeline:Show()
     if not container then self:Init() end
     if container then container:Show() end
     self:Refresh()
 end
 
+--- Hide the timeline panel.
 function Timeline:Hide()
     if container then container:Hide() end
 end
 
+--- Navigate to the timeline filtered by a specific month and day.
+---@param month number|nil Month to filter (1-12)
+---@param day number|nil Day to filter (1-31)
 function Timeline:FilterByDate(month, day)
     if not ns.MainFrame:IsShown() then
         ns.MainFrame:Show()

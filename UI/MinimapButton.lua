@@ -1,3 +1,8 @@
+--- Minimap button using LibDataBroker and LibDBIcon.
+-- Left-click toggles the main frame; right-click opens Blizzard Settings.
+-- Tooltip displays the addon version and current guild member counts.
+-- @module MinimapButton
+
 local GH, ns = ...
 
 local L = ns.L
@@ -7,6 +12,8 @@ local format = format
 local MinimapButton = {}
 ns.MinimapButton = MinimapButton
 
+--- Create and register the LibDataBroker data object and minimap icon.
+-- Uses the addon's saved minimap position from the AceDB profile.
 function MinimapButton:Init()
     local LDB = LibStub("LibDataBroker-1.1")
     local LDBIcon = LibStub("LibDBIcon-1.0")

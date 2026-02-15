@@ -1,3 +1,8 @@
+--- Main application window with tabbed navigation.
+-- Manages the top-level frame created in MainFrame.xml, provides tab
+-- switching between Dashboard, Timeline, and Settings panels.
+-- @module MainFrame
+
 local GH, ns = ...
 
 local L = ns.L
@@ -24,6 +29,9 @@ local TAB_INFO = {
     { id = TAB_SETTINGS,  label = L["UI_SETTINGS"] },
 }
 
+--- Initialise the main frame from its XML template.
+-- Applies the shared backdrop, wires up the close button, creates tabs,
+-- and defaults to the Dashboard tab. Safe to call multiple times.
 function MainFrame:Init()
     if frame then return end
 
@@ -59,6 +67,7 @@ function MainFrame:Init()
     self:SelectTab(TAB_DASHBOARD)
 end
 
+--- Build the tab buttons inside the TabContainer region.
 function MainFrame:CreateTabs()
     local tabContainer = frame.TabContainer
     local prevTab = nil
@@ -111,6 +120,8 @@ function MainFrame:CreateTabs()
     end
 end
 
+--- Switch to a specific tab, hiding all other panels.
+---@param tabID number Tab constant (TAB_DASHBOARD, TAB_TIMELINE, or TAB_SETTINGS)
 function MainFrame:SelectTab(tabID)
     activeTab = tabID
 
@@ -139,15 +150,18 @@ function MainFrame:SelectTab(tabID)
     end
 end
 
+--- Show the main frame, initialising it first if needed.
 function MainFrame:Show()
     if not frame then self:Init() end
     if frame then frame:Show() end
 end
 
+--- Hide the main frame.
 function MainFrame:Hide()
     if frame then frame:Hide() end
 end
 
+--- Toggle the main frame's visibility.
 function MainFrame:Toggle()
     if not frame then self:Init() end
     if frame then
@@ -159,10 +173,14 @@ function MainFrame:Toggle()
     end
 end
 
+--- Return whether the main frame is currently visible.
+---@return boolean shown True if shown
 function MainFrame:IsShown()
     return frame and frame:IsShown()
 end
 
+--- Return the Content child frame used to host tab panels.
+---@return Frame|nil content The content frame, or nil if not initialised
 function MainFrame:GetContentFrame()
     if not frame then self:Init() end
     return frame and frame.Content

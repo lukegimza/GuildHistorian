@@ -1,3 +1,9 @@
+--- Login popup showing guild achievements earned on today's date in past years.
+-- Renders a draggable notification frame from OnThisDayPopup.xml,
+-- auto-dismisses after a configurable timeout, and navigates to
+-- the Timeline tab on click.
+-- @module OnThisDayPopup
+
 local GH, ns = ...
 
 local L = ns.L
@@ -13,6 +19,8 @@ ns.OnThisDayPopup = OnThisDayPopup
 local popup = nil
 local dismissTimer = nil
 
+--- Initialise the popup frame from its XML template.
+-- Applies the shared backdrop, wires up drag behaviour and the close button.
 function OnThisDayPopup:Init()
     if popup then return end
 
@@ -37,6 +45,8 @@ function OnThisDayPopup:Init()
     end)
 end
 
+--- Show the popup if there are On This Day matches.
+-- Populates the content text and starts the auto-dismiss timer.
 function OnThisDayPopup:Show()
     if not popup then self:Init() end
     if not popup then return end
@@ -67,15 +77,17 @@ function OnThisDayPopup:Show()
     end)
 end
 
+--- Handle a click on the popup: dismiss it and open the Timeline tab.
 function OnThisDayPopup:OnClick()
     self:Dismiss()
     local now = GetServerTime()
     local month, day = Utils.TimestampToMonthDay(now)
     if ns.MainFrame then
-        ns.MainFrame:SelectTab(2)  -- Timeline tab
+        ns.MainFrame:SelectTab(2)
     end
 end
 
+--- Hide the popup and cancel the auto-dismiss timer.
 function OnThisDayPopup:Dismiss()
     if popup then popup:Hide() end
     if dismissTimer then

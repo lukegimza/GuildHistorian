@@ -1,7 +1,5 @@
 # Guild Historian v2.0 Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Transform Guild Historian from a local event recorder into a real-time guild dashboard and achievement browser powered entirely by WoW's server-side APIs.
 
 **Architecture:** Four API reader modules (AchievementScanner, NewsReader, RosterReader, EventLogReader) replace the old Database/write-queue/event-recording stack. Dashboard is the home screen with 7 cards. Timeline is a drill-down view merging achievements + news + event log. All core data comes from WoW APIs, not local storage.

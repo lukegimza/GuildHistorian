@@ -1,3 +1,8 @@
+--- Addon initialisation and lifecycle management.
+-- Creates the AceAddon instance, registers saved variables, slash commands,
+-- WoW events, and delegates to sub-modules on startup.
+-- @module Init
+
 local GH, ns = ...
 
 local L = ns.L
@@ -9,6 +14,8 @@ local strlower = strlower
 local addon = LibStub("AceAddon-3.0"):NewAddon(GH, "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0")
 ns.addon = addon
 
+--- Ace3 lifecycle hook: runs once when the addon object is created.
+-- Initialises the saved variable database and registers slash commands.
 function addon:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("GuildHistorianDB", ns.DB_DEFAULTS, true)
     self.version = C_AddOns.GetAddOnMetadata(GH, "Version") or "2.0.0"
@@ -16,6 +23,9 @@ function addon:OnInitialize()
     self:RegisterChatCommand("guildhistorian", "SlashCommand")
 end
 
+--- Ace3 lifecycle hook: runs when the addon is enabled (login / reload).
+-- Requests initial data from the server, registers events, and schedules
+-- the On This Day popup check.
 function addon:OnEnable()
     if not IsInGuild() then
         self:DebugPrint(L["NOT_IN_GUILD"])
@@ -38,20 +48,25 @@ function addon:OnEnable()
     self:ScheduleTimer("CheckOnThisDay", ns.ON_THIS_DAY_DELAY)
 end
 
+--- Handle GUILD_ROSTER_UPDATE by invalidating the roster cache and refreshing the dashboard.
 function addon:OnRosterUpdate()
     if ns.RosterReader then ns.RosterReader:Invalidate() end
     if ns.Dashboard then ns.Dashboard:Refresh() end
 end
 
+--- Handle GUILD_NEWS_UPDATE by invalidating the news cache and refreshing the dashboard.
 function addon:OnNewsUpdate()
     if ns.NewsReader then ns.NewsReader:Invalidate() end
     if ns.Dashboard then ns.Dashboard:Refresh() end
 end
 
+--- Handle GUILD_EVENT_LOG_UPDATE by invalidating the event log cache.
 function addon:OnEventLogUpdate()
     if ns.EventLogReader then ns.EventLogReader:Invalidate() end
 end
 
+--- Check whether there are On This Day achievements to display.
+-- Runs once per calendar day, gated by the character-level saved variable.
 function addon:CheckOnThisDay()
     if not self.db.profile.display.showOnThisDay then return end
     local today = date("%Y-%m-%d")
@@ -62,6 +77,8 @@ function addon:CheckOnThisDay()
     end
 end
 
+--- Process slash command input (/gh, /guildhistorian).
+---@param input string Raw command arguments
 function addon:SlashCommand(input)
     local cmd = self:GetArgs(input, 1)
     cmd = cmd and strlower(cmd) or ""
@@ -78,6 +95,8 @@ function addon:SlashCommand(input)
     end
 end
 
+--- Print a message to chat only when debug mode is enabled.
+---@param ... any Values to print, passed through to AceConsole:Print
 function addon:DebugPrint(...)
     if self.db and self.db.profile.debug then
         self:Print("|cff888888[Debug]|r", ...)
