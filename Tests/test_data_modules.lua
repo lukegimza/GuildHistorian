@@ -230,9 +230,9 @@ describe("NewsReader:Read", function()
         ns.NewsReader:Invalidate()
         MockState.numGuildNews = 3
         MockState.guildNews = {
-            [1] = { newsType = 0, whoText = "Player1", whatText = "Stay Classy", newsDataID = 5362, month = 1, day = 10, year = 24, guildMembersPresent = 5 },
-            [2] = { newsType = 2, whoText = "Player2", whatText = "Ragnaros", newsDataID = 100, month = 1, day = 11, year = 24, guildMembersPresent = 20 },
-            [3] = { newsType = 3, whoText = "Player3", whatText = "Thunderfury", newsDataID = 200, month = 1, day = 12, year = 24, guildMembersPresent = 1 },
+            [1] = { newsType = 0, whoText = "Player1", whatText = "Stay Classy", newsDataID = 5362, year = 0, month = 0, day = 1, guildMembersPresent = 5 },
+            [2] = { newsType = 2, whoText = "Player2", whatText = "Ragnaros", newsDataID = 100, year = 0, month = 0, day = 2, guildMembersPresent = 20 },
+            [3] = { newsType = 3, whoText = "Player3", whatText = "Thunderfury", newsDataID = 200, year = 0, month = 0, day = 3, guildMembersPresent = 1 },
         }
     end)
 
@@ -250,7 +250,8 @@ describe("NewsReader:Read", function()
         A.equals("Stay Classy", entry.what)
         A.equals(5362, entry.dataID)
         A.isNumber(entry.timestamp)
-        A.isTrue(entry.timestamp > 0)
+        -- News was 1 day ago, so timestamp = serverTime - 86400
+        A.equals(MockState.serverTime - 86400, entry.timestamp)
         A.equals(5, entry.membersPresent)
     end)
 
@@ -296,10 +297,10 @@ describe("NewsReader:GetSummary", function()
         ns.NewsReader:Invalidate()
         MockState.numGuildNews = 4
         MockState.guildNews = {
-            [1] = { newsType = 0, whoText = "P1", month = 1, day = 1, year = 24 },
-            [2] = { newsType = 0, whoText = "P2", month = 1, day = 2, year = 24 },
-            [3] = { newsType = 2, whoText = "P3", month = 1, day = 3, year = 24 },
-            [4] = { newsType = 3, whoText = "P4", month = 1, day = 4, year = 24 },
+            [1] = { newsType = 0, whoText = "P1", year = 0, month = 0, day = 1 },
+            [2] = { newsType = 0, whoText = "P2", year = 0, month = 0, day = 2 },
+            [3] = { newsType = 2, whoText = "P3", year = 0, month = 0, day = 3 },
+            [4] = { newsType = 3, whoText = "P4", year = 0, month = 0, day = 4 },
         }
     end)
 
@@ -458,9 +459,9 @@ describe("EventLogReader:Read", function()
         ns.EventLogReader:Invalidate()
         MockState.numGuildEvents = 3
         MockState.guildEventLog = {
-            [1] = { eventType = "join", playerName1 = "NewPlayer", playerName2 = nil, rankIndex = 0, year = 2024, month = 1, day = 15, hour = 10 },
-            [2] = { eventType = "promote", playerName1 = "Officer", playerName2 = "NewPlayer", rankIndex = 3, year = 2024, month = 1, day = 16, hour = 14 },
-            [3] = { eventType = "quit", playerName1 = "Quitter", playerName2 = nil, rankIndex = 0, year = 2024, month = 1, day = 17, hour = 8 },
+            [1] = { eventType = "join", playerName1 = "NewPlayer", playerName2 = nil, rankIndex = 0, yearsAgo = 0, monthsAgo = 0, daysAgo = 1, hoursAgo = 2 },
+            [2] = { eventType = "promote", playerName1 = "Officer", playerName2 = "NewPlayer", rankIndex = 3, yearsAgo = 0, monthsAgo = 0, daysAgo = 2, hoursAgo = 5 },
+            [3] = { eventType = "quit", playerName1 = "Quitter", playerName2 = nil, rankIndex = 0, yearsAgo = 0, monthsAgo = 0, daysAgo = 3, hoursAgo = 0 },
         }
     end)
 
@@ -475,7 +476,9 @@ describe("EventLogReader:Read", function()
         local e = results[1]
         A.equals("join", e.eventType)
         A.equals("NewPlayer", e.playerName)
-        A.isTrue(e.timestamp > 0, "Timestamp should be constructed from year/month/day/hour")
+        -- Event was 1 day 2 hours ago, so timestamp = serverTime - (86400 + 7200)
+        local expected = MockState.serverTime - (1 * 86400 + 2 * 3600)
+        A.equals(expected, e.timestamp)
     end)
 
     it("should format join text correctly", function()
@@ -517,7 +520,7 @@ describe("EventLogReader formatted text variants", function()
     it("should format invite text", function()
         MockState.numGuildEvents = 1
         MockState.guildEventLog = {
-            [1] = { eventType = "invite", playerName1 = "Inviter", playerName2 = "Invitee", rankIndex = 0, year = 2024, month = 1, day = 1, hour = 12 },
+            [1] = { eventType = "invite", playerName1 = "Inviter", playerName2 = "Invitee", rankIndex = 0, daysAgo = 1, hoursAgo = 0 },
         }
         local results = ns.EventLogReader:Read()
         A.equals("Inviter invited Invitee to the guild", results[1].formattedText)
@@ -526,7 +529,7 @@ describe("EventLogReader formatted text variants", function()
     it("should format demote text", function()
         MockState.numGuildEvents = 1
         MockState.guildEventLog = {
-            [1] = { eventType = "demote", playerName1 = "Officer", playerName2 = "Demoted", rankIndex = 5, year = 2024, month = 1, day = 1, hour = 12 },
+            [1] = { eventType = "demote", playerName1 = "Officer", playerName2 = "Demoted", rankIndex = 5, daysAgo = 2, hoursAgo = 0 },
         }
         local results = ns.EventLogReader:Read()
         A.equals("Officer was demoted to rank 5", results[1].formattedText)
@@ -535,7 +538,7 @@ describe("EventLogReader formatted text variants", function()
     it("should format remove text", function()
         MockState.numGuildEvents = 1
         MockState.guildEventLog = {
-            [1] = { eventType = "remove", playerName1 = "Officer", playerName2 = "Removed", rankIndex = 0, year = 2024, month = 1, day = 1, hour = 12 },
+            [1] = { eventType = "remove", playerName1 = "Officer", playerName2 = "Removed", rankIndex = 0, daysAgo = 3, hoursAgo = 0 },
         }
         local results = ns.EventLogReader:Read()
         A.equals("Removed was removed from the guild by Officer", results[1].formattedText)

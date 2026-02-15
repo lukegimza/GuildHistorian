@@ -26,6 +26,7 @@ ns.AchievementScanner = AchievementScanner
 
 local achievementCache = nil
 local statsCache = nil
+local categoryProgressCache = nil
 
 --- Scan all guild achievement categories and return completed achievements.
 -- Results are sorted by timestamp descending (newest first) and cached
@@ -135,6 +136,7 @@ end
 -- Results are sorted by completion percentage descending.
 ---@return table[] categories Array of {categoryName, earned, total, pct}
 function AchievementScanner:GetCategoryProgress()
+    if categoryProgressCache then return categoryProgressCache end
     if not IsInGuild() then return {} end
 
     local categories = {}
@@ -170,13 +172,15 @@ function AchievementScanner:GetCategoryProgress()
         return a.pct > b.pct
     end)
 
-    return categories
+    categoryProgressCache = categories
+    return categoryProgressCache
 end
 
---- Clear the achievement and stats caches, forcing a fresh scan on next access.
+--- Clear the achievement, stats, and category progress caches.
 function AchievementScanner:Invalidate()
     achievementCache = nil
     statsCache = nil
+    categoryProgressCache = nil
 end
 
 -------------------------------------------------------------------------------
@@ -205,14 +209,15 @@ function NewsReader:Read(forceRefresh)
     if QueryGuildNews then QueryGuildNews() end
 
     local results = {}
+    local now = GetServerTime()
     local numNews = GetNumGuildNews and GetNumGuildNews() or 0
     for i = 1, numNews do
         local entry = C_GuildInfo.GetGuildNewsInfo(i)
         if entry then
-            local timestamp = 0
-            if entry.month and entry.day and entry.year then
-                timestamp = Utils.DateToTimestamp(entry.month, entry.day, entry.year)
-            end
+            local secondsAgo = (entry.year or 0) * 31536000
+                             + (entry.month or 0) * 2592000
+                             + (entry.day or 0) * 86400
+            local timestamp = now - secondsAgo
 
             local typeInfo = nil
             if ns.NEWS_TYPE_INFO and entry.newsType then
@@ -306,7 +311,7 @@ end
 ---@return table[] members Filtered subset of the roster cache
 function RosterReader:GetOnlineMaxLevel()
     local cache = self:Read()
-    local maxLevel = GetMaxPlayerLevel()
+    local maxLevel = GetMaxPlayerLevel and GetMaxPlayerLevel() or MAX_PLAYER_LEVEL or 80
     local results = {}
     for _, member in ipairs(cache) do
         if member.online and member.level == maxLevel then
@@ -420,25 +425,22 @@ function EventLogReader:Read(forceRefresh)
     end
 
     local results = {}
+    local now = GetServerTime()
     local numEvents = GetNumGuildEvents and GetNumGuildEvents() or 0
     for i = 1, numEvents do
         local eventType, playerName, targetName, rankIndex,
-              evtYear, evtMonth, evtDay, evtHour = GetGuildEventInfo(i)
+              yearsAgo, monthsAgo, daysAgo, hoursAgo = GetGuildEventInfo(i)
         if eventType then
-            local timestamp = 0
-            if evtYear and evtMonth and evtDay then
-                local realYear = (evtYear == 0) and tonumber(date("%Y")) or evtYear
-                timestamp = time({
-                    year = realYear, month = evtMonth, day = evtDay,
-                    hour = evtHour or 0, min = 0, sec = 0,
-                })
-            end
+            local secondsAgo = (yearsAgo or 0) * 31536000
+                             + (monthsAgo or 0) * 2592000
+                             + (daysAgo or 0) * 86400
+                             + (hoursAgo or 0) * 3600
             tinsert(results, {
                 eventType = eventType,
                 playerName = playerName,
                 targetName = targetName,
                 rankIndex = rankIndex,
-                timestamp = timestamp,
+                timestamp = now - secondsAgo,
                 formattedText = formatEventText(eventType, playerName, targetName, rankIndex),
             })
         end

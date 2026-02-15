@@ -268,11 +268,12 @@ function GetNumGuildEvents()
     return MockState.numGuildEvents
 end
 
+--- Returns relative time offsets (yearsAgo, monthsAgo, daysAgo, hoursAgo), not absolute dates.
 function GetGuildEventInfo(index)
     local entry = MockState.guildEventLog[index]
     if not entry then return nil end
     return entry.eventType, entry.playerName1, entry.playerName2, entry.rankIndex,
-           entry.year or 0, entry.month or 1, entry.day or 1, entry.hour or 0
+           entry.yearsAgo or 0, entry.monthsAgo or 0, entry.daysAgo or 0, entry.hoursAgo or 0
 end
 
 function GetGuildRosterInfo(index)

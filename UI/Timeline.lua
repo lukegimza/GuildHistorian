@@ -156,7 +156,8 @@ function Timeline:Init()
     scrollFrame:SetPoint("BOTTOMRIGHT", -26, 0)
 
     scrollChild = CreateFrame("Frame", "GuildHistorianScrollChild", scrollFrame)
-    scrollChild:SetWidth(scrollFrame:GetWidth() or 400)
+    local sfWidth = scrollFrame:GetWidth()
+    scrollChild:SetWidth(sfWidth > 0 and sfWidth or 400)
     scrollFrame:SetScrollChild(scrollChild)
 
     scrollFrame:SetScript("OnSizeChanged", function(self, w)
