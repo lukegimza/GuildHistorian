@@ -380,7 +380,8 @@ end
 ---@param count number|nil Number of members to return (default 10)
 ---@return table[] leaders Sorted array of {name, class, score}, highest score first
 function RosterReader:GetTopMythicPlus(count)
-    local clubId = C_Club and C_Club.GetGuildClubId and C_Club.GetGuildClubId()
+    if not C_Club or not C_Club.GetGuildClubId or not C_Club.GetMemberInfo then return {} end
+    local clubId = C_Club.GetGuildClubId()
     if not clubId then return {} end
 
     local memberIds = C_Club.GetClubMembers(clubId)
@@ -396,7 +397,7 @@ function RosterReader:GetTopMythicPlus(count)
 
     local results = {}
     for _, memberId in ipairs(memberIds) do
-        local info = C_Club.GetClubMemberInfo(clubId, memberId)
+        local info = C_Club.GetMemberInfo(clubId, memberId)
         if info and info.overallDungeonScore and info.overallDungeonScore > 0 then
             local short = info.name and info.name:match("^([^%-]+)") or info.name
             local rosterEntry = rosterByName[short]

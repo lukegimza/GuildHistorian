@@ -421,7 +421,7 @@ C_Club = {
         end
         return ids
     end,
-    GetClubMemberInfo = function(clubId, memberId)
+    GetMemberInfo = function(clubId, memberId)
         if not MockState.clubMembers then return nil end
         return MockState.clubMembers[memberId]
     end,
