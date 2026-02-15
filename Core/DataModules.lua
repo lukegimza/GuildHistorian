@@ -51,7 +51,7 @@ function AchievementScanner:Scan(forceRefresh)
 
     local categoryIDs = GetCategoryList()
     for _, catID in ipairs(categoryIDs) do
-        local numAchievements = GetCategoryNumAchievements(catID, true)
+        local numAchievements = GetCategoryNumAchievements(catID, false)
         for i = 1, numAchievements do
             local id, name, points, completed, month, day, year,
                   description, flags, icon, _, isGuild = GetAchievementInfo(catID, i)
@@ -142,7 +142,7 @@ function AchievementScanner:GetCategoryProgress()
 
     for _, catID in ipairs(categoryIDs) do
         local catName = GetCategoryInfo(catID)
-        local numAchievements = GetCategoryNumAchievements(catID, true)
+        local numAchievements = GetCategoryNumAchievements(catID, false)
         local earned = 0
         local total = 0
 
