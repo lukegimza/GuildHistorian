@@ -202,6 +202,12 @@ function Timeline:Refresh()
             if pass and filters.endDate and event.timestamp > filters.endDate then
                 pass = false
             end
+            if pass and filters.filterMonth and filters.filterDay then
+                local m, d = Utils.TimestampToMonthDay(event.timestamp)
+                if m ~= filters.filterMonth or d ~= filters.filterDay then
+                    pass = false
+                end
+            end
             if pass then
                 events[#events + 1] = event
             end
@@ -255,11 +261,15 @@ function Timeline:Hide()
 end
 
 --- Navigate to the timeline filtered by a specific month and day.
+-- Opens the main frame if hidden and switches to the Timeline tab.
 ---@param month number|nil Month to filter (1-12)
 ---@param day number|nil Day to filter (1-31)
 function Timeline:FilterByDate(month, day)
-    if not ns.MainFrame:IsShown() then
-        ns.MainFrame:Show()
+    if ns.MainFrame then
+        if not ns.MainFrame:IsShown() then
+            ns.MainFrame:Show()
+        end
+        ns.MainFrame:SelectTab(2)
     end
     if ns.FilterBar and month and day then
         ns.FilterBar:SetMonthDayFilter(month, day)

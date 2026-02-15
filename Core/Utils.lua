@@ -1,6 +1,6 @@
 --- General-purpose utility functions for GuildHistorian.
--- Provides time formatting, player identification, string helpers,
--- class colouring, and shared UI backdrop application.
+-- Provides time formatting, string helpers, class colouring,
+-- and shared UI backdrop application.
 -- @module Utils
 
 local GH, ns = ...
@@ -10,15 +10,9 @@ ns.Utils = Utils
 
 local format = format
 local date = date
-local strlower = strlower
-local strfind = strfind
 local strsub = strsub
-local strmatch = strmatch
 local tostring = tostring
-local type = type
-local select = select
 local floor = math.floor
-local min = math.min
 local time = time
 
 --- Format a Unix timestamp as "YYYY-MM-DD HH:MM".
@@ -109,44 +103,6 @@ function Utils.FormatNumber(n)
     return tostring(n)
 end
 
---- Build a "Name-Realm" identifier for the current player.
----@return string|nil playerID "Name-Realm" string, or nil if player name unavailable
-function Utils.GetPlayerID()
-    local name, realm = UnitFullName("player")
-    if not name then return nil end
-    if not realm or realm == "" then
-        realm = GetRealmName()
-    end
-    if realm then
-        realm = realm:gsub("%s+", "")
-    end
-    return name .. "-" .. (realm or "Unknown")
-end
-
---- Build a "GuildName-Realm" key for the player's current guild.
----@return string|nil guildKey "GuildName-Realm" string, or nil if not in a guild
-function Utils.GetGuildKey()
-    if not IsInGuild() then return nil end
-    local guildName, _, _, guildRealm = GetGuildInfo("player")
-    if not guildName then return nil end
-    if not guildRealm or guildRealm == "" then
-        guildRealm = GetRealmName()
-    end
-    if guildRealm then
-        guildRealm = guildRealm:gsub("%s+", "")
-    end
-    return guildName .. "-" .. (guildRealm or "Unknown")
-end
-
---- Safely call a function, routing errors through the global error handler.
----@param func function The function to call
----@param ... any Arguments to pass through
----@return boolean success True if the call completed without error
-function Utils.safecall(func, ...)
-    if type(func) ~= "function" then return false end
-    return xpcall(func, geterrorhandler(), ...)
-end
-
 --- Wrap a player name in the WoW class colour escape sequence.
 ---@param name string Player name to colourise
 ---@param class string Uppercase English class token (e.g. "WARRIOR")
@@ -157,27 +113,6 @@ function Utils.ClassColoredName(name, class)
     end
     local color = RAID_CLASS_COLORS[class]
     return format("|c%s%s|r", color.colorStr or "ffffffff", name)
-end
-
---- Resolve a dungeon difficulty ID to its display name.
--- Falls back to the WoW API GetDifficultyInfo when the ID is not in the lookup table.
----@param difficultyID number WoW difficulty ID
----@return string name Human-readable difficulty name
-function Utils.GetDifficultyName(difficultyID)
-    if not difficultyID then return "Unknown" end
-    return ns.DIFFICULTY_NAMES[difficultyID] or GetDifficultyInfo(difficultyID) or "Unknown"
-end
-
---- Recursively deep-copy a table. Non-table values are returned as-is.
----@param orig table The table to copy
----@return table copy Independent deep copy of the original
-function Utils.DeepCopy(orig)
-    if type(orig) ~= "table" then return orig end
-    local copy = {}
-    for k, v in pairs(orig) do
-        copy[k] = Utils.DeepCopy(v)
-    end
-    return copy
 end
 
 --- Truncate a string to a maximum length, appending "..." if shortened.

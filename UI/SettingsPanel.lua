@@ -95,7 +95,7 @@ function SettingsPanel:BuildBlizzardCanvas()
     desc:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
     desc:SetWidth(500)
     desc:SetJustifyH("LEFT")
-    desc:SetText("Passively records guild milestones and presents them in a browsable in-game timeline.")
+    desc:SetText("Real-time guild dashboard and achievement browser powered by WoW's server-side APIs.")
 
     BuildSettingsContent(canvas, -70)
 

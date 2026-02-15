@@ -102,72 +102,6 @@ describe("Utils.RelativeTime", function()
     end)
 end)
 
-describe("Utils.GetPlayerID", function()
-    beforeEach(function()
-        MockState:Reset()
-    end)
-
-    it("should return Name-Realm format", function()
-        local id = ns.Utils.GetPlayerID()
-        A.equals("TestPlayer-TestRealm", id)
-    end)
-
-    it("should strip spaces from realm name", function()
-        MockState.playerRealm = "Moon Guard"
-        local id = ns.Utils.GetPlayerID()
-        A.equals("TestPlayer-MoonGuard", id)
-    end)
-
-    it("should return nil when player name is unavailable", function()
-        MockState.playerName = nil
-        local id = ns.Utils.GetPlayerID()
-        A.isNil(id)
-    end)
-end)
-
-describe("Utils.GetGuildKey", function()
-    beforeEach(function()
-        MockState:Reset()
-    end)
-
-    it("should return GuildName-Realm format", function()
-        local key = ns.Utils.GetGuildKey()
-        A.isString(key)
-        A.contains("Test Guild", key)
-    end)
-
-    it("should return nil when not in a guild", function()
-        MockState.inGuild = false
-        local key = ns.Utils.GetGuildKey()
-        A.isNil(key)
-    end)
-end)
-
-describe("Utils.safecall", function()
-    it("should call the function and return true on success", function()
-        local called = false
-        local ok = ns.Utils.safecall(function() called = true end)
-        A.isTrue(ok)
-        A.isTrue(called)
-    end)
-
-    it("should return false for non-function input", function()
-        local ok = ns.Utils.safecall("not a function")
-        A.isFalse(ok)
-    end)
-
-    it("should not propagate errors from the called function", function()
-        local ok = ns.Utils.safecall(function() error("test error") end)
-        A.isFalse(ok)
-    end)
-
-    it("should pass arguments through", function()
-        local received = nil
-        ns.Utils.safecall(function(x) received = x end, 42)
-        A.equals(42, received)
-    end)
-end)
-
 describe("Utils.ClassColoredName", function()
     it("should return colored name for valid class", function()
         local result = ns.Utils.ClassColoredName("TestPlayer", "WARRIOR")
@@ -185,63 +119,6 @@ describe("Utils.ClassColoredName", function()
     it("should return plain name for nil class", function()
         local result = ns.Utils.ClassColoredName("TestPlayer", nil)
         A.equals("TestPlayer", result)
-    end)
-end)
-
-describe("Utils.GetDifficultyName", function()
-    it("should return known difficulty names", function()
-        A.equals("Mythic", ns.Utils.GetDifficultyName(16))
-        A.equals("Heroic", ns.Utils.GetDifficultyName(15))
-        A.equals("Normal", ns.Utils.GetDifficultyName(14))
-        A.equals("Looking For Raid", ns.Utils.GetDifficultyName(17))
-    end)
-
-    it("should return 'Unknown' for nil", function()
-        A.equals("Unknown", ns.Utils.GetDifficultyName(nil))
-    end)
-
-    it("should fall back to GetDifficultyInfo for unknown IDs", function()
-        -- ID 1 is in both ns.DIFFICULTY_NAMES and GetDifficultyInfo mock
-        A.equals("Normal", ns.Utils.GetDifficultyName(1))
-    end)
-end)
-
-describe("Utils.DeepCopy", function()
-    it("should copy a simple table", function()
-        local orig = { a = 1, b = "hello" }
-        local copy = ns.Utils.DeepCopy(orig)
-        A.equals(1, copy.a)
-        A.equals("hello", copy.b)
-    end)
-
-    it("should produce an independent copy", function()
-        local orig = { a = 1, nested = { x = 10 } }
-        local copy = ns.Utils.DeepCopy(orig)
-        copy.a = 2
-        copy.nested.x = 20
-        A.equals(1, orig.a, "Original should be unchanged")
-        A.equals(10, orig.nested.x, "Original nested should be unchanged")
-    end)
-
-    it("should handle nested tables", function()
-        local orig = { a = { b = { c = 42 } } }
-        local copy = ns.Utils.DeepCopy(orig)
-        A.equals(42, copy.a.b.c)
-    end)
-
-    it("should return non-table values as-is", function()
-        A.equals(42, ns.Utils.DeepCopy(42))
-        A.equals("hello", ns.Utils.DeepCopy("hello"))
-        A.equals(true, ns.Utils.DeepCopy(true))
-        A.isNil(ns.Utils.DeepCopy(nil))
-    end)
-
-    it("should copy arrays correctly", function()
-        local orig = { 1, 2, 3 }
-        local copy = ns.Utils.DeepCopy(orig)
-        A.arrayLength(3, copy)
-        A.equals(1, copy[1])
-        A.equals(3, copy[3])
     end)
 end)
 

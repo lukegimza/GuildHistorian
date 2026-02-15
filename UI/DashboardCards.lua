@@ -27,6 +27,16 @@ local function CreateCardFrame(parent, width, title)
     card:SetWidth(width)
     Utils.ApplySharedBackdrop(card, 0.7)
 
+    card:EnableMouse(true)
+    card:SetScript("OnEnter", function(self)
+        local bg = ns.SHARED_BACKDROP_COLOR
+        self:SetBackdropColor(bg[1] + 0.05, bg[2] + 0.05, bg[3] + 0.05, 0.8)
+    end)
+    card:SetScript("OnLeave", function(self)
+        local bg = ns.SHARED_BACKDROP_COLOR
+        self:SetBackdropColor(bg[1], bg[2], bg[3], 0.7)
+    end)
+
     local titleText = card:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     titleText:SetPoint("TOPLEFT", 10, -8)
     titleText:SetText(title)
@@ -122,8 +132,10 @@ function DashboardCards:CreateOnThisDay(parent, width)
     card:SetHeight(math.abs(y) + 8)
 
     card:SetScript("OnMouseDown", function()
-        if ns.MainFrame then
-            ns.MainFrame:SelectTab(2)
+        local now = GetServerTime()
+        local month, day = Utils.TimestampToMonthDay(now)
+        if ns.Timeline then
+            ns.Timeline:FilterByDate(month, day)
         end
     end)
 
@@ -180,10 +192,24 @@ function DashboardCards:CreateRecentActivity(parent, width)
         end
     end
 
-    local viewMore = card:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    local viewMore = CreateFrame("Button", nil, card)
+    viewMore:SetSize(width - 20, 16)
     viewMore:SetPoint("TOPLEFT", 10, y - 4)
-    viewMore:SetText("\226\134\146 " .. L["CARD_VIEW_TIMELINE"])
-    viewMore:SetTextColor(0.6, 0.6, 0.6)
+    local viewMoreText = viewMore:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    viewMoreText:SetPoint("LEFT", 0, 0)
+    viewMoreText:SetText("\226\134\146 " .. L["CARD_VIEW_TIMELINE"])
+    viewMoreText:SetTextColor(0.6, 0.6, 0.6)
+    viewMore:SetScript("OnClick", function()
+        if ns.MainFrame then
+            ns.MainFrame:SelectTab(2)
+        end
+    end)
+    viewMore:SetScript("OnEnter", function()
+        viewMoreText:SetTextColor(1, 0.84, 0)
+    end)
+    viewMore:SetScript("OnLeave", function()
+        viewMoreText:SetTextColor(0.6, 0.6, 0.6)
+    end)
     y = y - 20
 
     card:SetHeight(math.abs(y) + 8)

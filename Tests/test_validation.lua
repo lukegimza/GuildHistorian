@@ -309,24 +309,11 @@ end)
 -- News Type Consistency (v2 replaces EVENT_TYPES with NEWS_TYPES)
 -------------------------------------------------------------------------------
 describe("Validation: News Type Consistency", function()
-    it("should have NEWS_TYPE_INFO for all NEWS_TYPES values", function()
-        for key, value in pairs(ns.NEWS_TYPES) do
-            A.isNotNil(ns.NEWS_TYPE_INFO[value], "Missing NEWS_TYPE_INFO for " .. key .. " (value=" .. tostring(value) .. ")")
-        end
-    end)
-
     it("should have label and icon for each NEWS_TYPE_INFO entry", function()
         for id, info in pairs(ns.NEWS_TYPE_INFO) do
             A.isNotNil(info.label, "Missing label for NEWS_TYPE_INFO[" .. tostring(id) .. "]")
             A.isNotNil(info.icon, "Missing icon for NEWS_TYPE_INFO[" .. tostring(id) .. "]")
         end
-    end)
-
-    it("should have EVENT_LOG_TYPES defined", function()
-        A.isNotNil(ns.EVENT_LOG_TYPES)
-        A.isNotNil(ns.EVENT_LOG_TYPES.INVITE)
-        A.isNotNil(ns.EVENT_LOG_TYPES.JOIN)
-        A.isNotNil(ns.EVENT_LOG_TYPES.QUIT)
     end)
 end)
 
@@ -349,11 +336,6 @@ describe("Validation: Database Defaults", function()
         A.isNotNil(cards, "Should have cards settings")
         A.isTrue(type(cards.showGuildPulse) == "boolean")
         A.isTrue(type(cards.showOnThisDay) == "boolean")
-    end)
-
-    it("should have valid DB_VERSION", function()
-        A.isNumber(ns.DB_VERSION)
-        A.isTrue(ns.DB_VERSION >= 1)
     end)
 
     it("should have char defaults", function()

@@ -77,13 +77,13 @@ function OnThisDayPopup:Show()
     end)
 end
 
---- Handle a click on the popup: dismiss it and open the Timeline tab.
+--- Handle a click on the popup: dismiss it and navigate to the Timeline filtered by today's date.
 function OnThisDayPopup:OnClick()
     self:Dismiss()
     local now = GetServerTime()
     local month, day = Utils.TimestampToMonthDay(now)
-    if ns.MainFrame then
-        ns.MainFrame:SelectTab(2)
+    if ns.Timeline then
+        ns.Timeline:FilterByDate(month, day)
     end
 end
 

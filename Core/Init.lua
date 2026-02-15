@@ -60,9 +60,10 @@ function addon:OnNewsUpdate()
     if ns.Dashboard then ns.Dashboard:Refresh() end
 end
 
---- Handle GUILD_EVENT_LOG_UPDATE by invalidating the event log cache.
+--- Handle GUILD_EVENT_LOG_UPDATE by invalidating the event log cache and refreshing the dashboard.
 function addon:OnEventLogUpdate()
     if ns.EventLogReader then ns.EventLogReader:Invalidate() end
+    if ns.Dashboard then ns.Dashboard:Refresh() end
 end
 
 --- Check whether there are On This Day achievements to display.

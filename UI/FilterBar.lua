@@ -27,6 +27,8 @@ local currentFilters = {
     search = nil,
     startDate = nil,
     endDate = nil,
+    filterMonth = nil,
+    filterDay = nil,
 }
 
 local filterTypes = {
@@ -142,6 +144,8 @@ end
 ---@param days number|nil Number of days to look back, or nil for no date filter
 function FilterBar:SetDatePreset(days)
     activeDatePreset = days
+    currentFilters.filterMonth = nil
+    currentFilters.filterDay = nil
     if not days then
         currentFilters.startDate = nil
         currentFilters.endDate = nil
@@ -153,16 +157,16 @@ function FilterBar:SetDatePreset(days)
     self:ApplyFilters()
 end
 
---- Set a month/day filter triggered by the On This Day popup.
+--- Set a month/day filter to show events from a specific calendar date across all years.
 ---@param month number|nil Month (1-12)
 ---@param day number|nil Day (1-31)
 function FilterBar:SetMonthDayFilter(month, day)
-    if month then
-        activeDatePreset = nil
-        currentFilters.startDate = nil
-        currentFilters.endDate = nil
-        self:UpdateDateButtonHighlights()
-    end
+    activeDatePreset = nil
+    currentFilters.startDate = nil
+    currentFilters.endDate = nil
+    currentFilters.filterMonth = month
+    currentFilters.filterDay = day
+    self:UpdateDateButtonHighlights()
     self:ApplyFilters()
 end
 
@@ -176,15 +180,18 @@ function FilterBar:ClearFilters()
     currentFilters.types = nil
     currentFilters.startDate = nil
     currentFilters.endDate = nil
+    currentFilters.filterMonth = nil
+    currentFilters.filterDay = nil
     activeDatePreset = nil
     self:UpdateDateButtonHighlights()
     self:ApplyFilters()
 end
 
 --- Return the current filter state, or nil if no filters are active.
----@return table|nil filters {types, search, startDate, endDate} or nil
+---@return table|nil filters {types, search, startDate, endDate, filterMonth, filterDay} or nil
 function FilterBar:GetFilters()
-    if not currentFilters.types and not currentFilters.search and not currentFilters.startDate then
+    if not currentFilters.types and not currentFilters.search
+       and not currentFilters.startDate and not currentFilters.filterMonth then
         return nil
     end
     return currentFilters
